@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -30,7 +31,11 @@ export default function Home() {
             />
           </svg>
 
-          <ul>Provide the details of the diagnosed condition.</ul>
+          <ul>
+            <Link href="/your-id">
+            Provide the details of the diagnosed condition.
+            </Link>
+            </ul>
         </ol>
       </div>
     </div>
