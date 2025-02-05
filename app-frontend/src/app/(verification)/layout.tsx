@@ -23,8 +23,8 @@ export default function VerifyLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${robotoSans.variable} antialiased`}>
-        <nav className="flex shadow-lg p-6 items-center w-full h-32 min-h-32 fixed top-0">
+      <body className={`${robotoSans.variable} antialiased overflow-hidden`}>
+        <nav className="flex shadow-lg p-6 items-center w-full h-32 min-h-32 fixed top-0 z-10">
           {/* logo */}
           <Image
             src="/logo.png"

@@ -30,7 +30,7 @@ export default function Verify() {
           <label htmlFor="work_id">
             <div className="mt-7 leading-5 tracking-tight">
               <p className="text-3xl font-semibold">Work ID</p>
-              <p className="tracking-tighter font-extralight text-sm">
+              <p className="font-extralight text-sm">
                 This will be your work id
               </p>
             </div>
