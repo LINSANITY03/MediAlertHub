@@ -1,6 +1,11 @@
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Enter your name",
+};
 
 export default function VerifyName() {
   return (

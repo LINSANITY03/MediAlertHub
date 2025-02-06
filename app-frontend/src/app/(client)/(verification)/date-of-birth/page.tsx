@@ -1,6 +1,11 @@
 import Link from "next/link";
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'What is your DOB?',
+}
 
 export default function Verify() {
   return (
