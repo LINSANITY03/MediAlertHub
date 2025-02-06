@@ -23,7 +23,7 @@ export default function VerifyLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${robotoSans.variable} antialiased overflow-hidden`}>
+      <body className={`${robotoSans.variable} antialiased`}>
         <nav className="flex shadow-lg p-6 items-center w-full h-32 min-h-32 fixed top-0 z-10">
           {/* logo */}
           <Image
@@ -36,7 +36,7 @@ export default function VerifyLayout({
           {/* website title */}
           <h1 className="tracking-tighter text-4xl ml-8">E-survillance</h1>
         </nav>
-        <main className="mt-40">{children}</main>
+        <main className="mt-40 z-0">{children}</main>
       </body>
     </html>
   );

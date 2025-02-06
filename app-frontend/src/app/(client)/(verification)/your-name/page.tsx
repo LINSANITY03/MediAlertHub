@@ -13,14 +13,14 @@ export default function VerifyName() {
         <Link href={"/your-id"}>
       <BackLink />
         </Link>
-      <div className="grid grid-rows-4 mt-10">
-        <h2 className="underline tracking-tight text-3xl font-semibold">
+      <div className="grid grid-rows-4 mt-5">
+        <h2 className="underline tracking-tight text-2xl font-semibold">
           Enter your name
         </h2>
         <div>
           <label htmlFor="first_name">
-            <div className="mt-7 leading-5 tracking-tight">
-              <p className="text-3xl font-semibold">First Name</p>
+            <div className="leading-5 tracking-tight">
+              <p className="text-1xl font-semibold">First Name</p>
             </div>
           </label>
           <input
@@ -34,8 +34,8 @@ export default function VerifyName() {
         </div>
         <div>
           <label htmlFor="last_name">
-            <div className="mt-7 leading-5 tracking-tight">
-              <p className="text-3xl font-semibold">Last Name</p>
+            <div className="mt-3 leading-5 tracking-tight">
+              <p className="text-1xl font-semibold">Last Name</p>
             </div>
           </label>
           <input

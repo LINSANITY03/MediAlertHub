@@ -4,19 +4,19 @@ import Continue_btn from "@/components/ContinueButton";
 
 export default function Verify() {
   return (
-    <div className="p-10 ml-20">
+    <div className="p-10 ml-20 mt-40">
       <Link href={"/"}>
         <BackLink />
       </Link>
-      <div className="grid grid-rows-4 mt-14">
-        <h2 className="underline tracking-tight text-3xl font-semibold">
+      <div className="grid grid-rows-4 mt-5">
+        <h2 className="underline tracking-tight text-2xl font-semibold">
           Verify your details
         </h2>
 
         <div>
           <label htmlFor="work_id">
-            <div className="mt-7 leading-5 tracking-tight">
-              <p className="text-3xl font-semibold">Work ID</p>
+            <div className="leading-5 tracking-tight">
+              <p className="text-1xl font-semibold">Work ID</p>
               <p className="font-extralight text-sm">
                 This will be your work id
               </p>

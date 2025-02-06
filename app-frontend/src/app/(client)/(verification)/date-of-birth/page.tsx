@@ -13,15 +13,15 @@ export default function Verify() {
       <Link href={"/your-name"}>
         <BackLink />
       </Link>
-      <div className="grid grid-rows-3 mt-14">
-        <h2 className="underline tracking-tight text-3xl font-semibold">
+      <div className="grid grid-rows-3 mt-5">
+        <h2 className="underline tracking-tight text-2xl font-semibold">
           What is your DOB?
         </h2>
 
         <div>
           <label htmlFor="dob">
             <div className="mt-7 leading-5 tracking-tight">
-              <p className="text-3xl font-semibold">Date of birth</p>
+              <p className="text-1xl font-semibold">Date of birth</p>
             </div>
           </label>
           <input
