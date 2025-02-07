@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 export default function VerifyName() {
   return (
     <div className="p-10 ml-20">
-        <Link href={"/your-id"}>
-      <BackLink />
-        </Link>
+      <Link href={"/your-id"}>
+        <BackLink />
+      </Link>
       <div className="grid grid-rows-4 mt-5">
         <h2 className="underline tracking-tight text-2xl font-semibold">
           Enter your name
