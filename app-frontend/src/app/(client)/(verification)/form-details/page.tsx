@@ -2,8 +2,14 @@
 
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
-import MapSelector from "@/components/MapSelect";
 import React, { useState } from "react";
+
+import dynamic from 'next/dynamic';
+
+// Dynamically load the Map component and disable SSR
+const MapSelector = dynamic(() => import('@/components/MapSelect'), {
+  ssr: false, // Disable SSR for this component
+});
 
 interface Position {
   lat: number;
@@ -24,11 +30,11 @@ export default function FormView() {
   return (
     <div className="p-20 ml-20">
       <BackLink />
-      <h1 className="prev_title">Preview</h1>
+      <h1 className="text-3xl tracking-tight font-bold pt-6">Preview</h1>
 
-      <div >
+      <form className="pt-10">
         {/* form1 */}
-        <div className="grid grid-rows-4">
+        <div className="">
           <h2>Identity details</h2>
           <p>1. Patient age</p>
           <input
@@ -98,7 +104,7 @@ export default function FormView() {
           />
         </div>
         <Continue_btn />
-      </div>
+      </form>
     </div>
   );
 }

@@ -29,7 +29,7 @@ const MapSelector = (props: MapSelectorProps) => {
   const { onPositionSelect } = props; // Destructure props
   const initialPosition: Position = props.defaultPosition || { lat: 27.658354, lng: 85.325065 }; // Satdobato location
   const [position, setPosition] = useState<Position>(initialPosition);
-
+  
   const LocationMarker = () => {
     const map = useMapEvents({
       click: (e: L.LeafletMouseEvent) => { 
