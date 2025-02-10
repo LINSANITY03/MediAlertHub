@@ -1,7 +1,7 @@
+import L from 'leaflet';
 import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
 interface Position {
   lat: number;
@@ -29,7 +29,7 @@ const MapSelector = (props: MapSelectorProps) => {
   const { onPositionSelect } = props; // Destructure props
   const initialPosition: Position = props.defaultPosition || { lat: 27.658354, lng: 85.325065 }; // Satdobato location
   const [position, setPosition] = useState<Position>(initialPosition);
-  
+ 
   const LocationMarker = () => {
     const map = useMapEvents({
       click: (e: L.LeafletMouseEvent) => { 
@@ -41,7 +41,7 @@ const MapSelector = (props: MapSelectorProps) => {
 
     return position ? (
       <Marker position={[position.lat, position.lng]}>
-        <Popup>You selected this position.</Popup>
+        <Popup>{position.lat}, {position.lng}</Popup>
       </Marker>
     ) : null;
   };
