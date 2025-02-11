@@ -2,7 +2,7 @@
 
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -18,6 +18,11 @@ interface Position {
 }
 
 export default function FormView() {
+
+  useEffect(() => {
+    document.title = "";
+  }, []);
+
   const myDefaultPosition: Position = { lat: 27.658354, lng: 85.325065 }; // Satdobato
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null
@@ -33,7 +38,6 @@ export default function FormView() {
       <Link href={"/"}>
         <BackLink />
       </Link>
-      <h1 className="text-3xl tracking-tight font-bold pt-6">Preview</h1>
 
       <form className="pt-10">
         {/* form1 */}
