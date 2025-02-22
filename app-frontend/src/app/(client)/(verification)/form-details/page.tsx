@@ -1,8 +1,11 @@
 "use client";
 
+import React, { useState, useEffect, Suspense } from "react";
+
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
-import React, { useState, useEffect, Suspense } from "react";
+import district from "@/components/District_list";
+import province from "@/components/Province_list";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -25,6 +28,13 @@ export default function FormView() {
   const myDefaultPosition: Position = { lat: 27.658354, lng: 85.325065 }; // Satdobato
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null
+  );
+  const [selectedprovince, setSelectedProvince] = useState<string>("");
+
+  console.log(selectedprovince)
+  // Filter states based on the selected country
+  const filteredDistrict = district.filter(
+    (state) => state.province === selectedprovince
   );
 
   const handlePositionSelect = (position: Position) => {
@@ -135,20 +145,50 @@ export default function FormView() {
         <div className="pt-10">
           <h2 className="text-2xl font-semibold underline">Location</h2>
           <label htmlFor="f_3_q_1">
-            <p className="text-xl">1. District</p>
+            <p className="text-xl">1. Province</p>
           </label>
-          <select name="district" id="f_3_q_1" required>
-            <option value=""></option>
-          </select>
-          <p className="text-xl">2. Zone</p>
-          <input
-            className="border border-black"
-            type="text"
-            name=""
-            id=""
-            readOnly
+
+          <select
+            className="border border-black mx-3 p-3"
+            name="province"
+            id="f_3_q_1"
+            onChange={(e) => setSelectedProvince(e.target.value)}
             required
-          />
+          >
+            <option value="">Select a Province</option> {/* Optional default option */}
+            {province.map((each, index) => {
+              return (
+                <option
+                  key={index}
+                  value={each.name}
+                >
+                  {each.name}
+                </option>
+              );
+            })}
+          </select>
+
+          {selectedprovince && (
+            <>
+              <label htmlFor="f_3_q_2">
+                <p className="text-xl">2. District</p>
+              </label>
+              <select
+                className="border border-black mx-3 p-3"
+                name="district"
+                id="f_3_q_2"
+                required
+              >
+                {filteredDistrict.map((each, index) => {
+                  return (
+                    <option key={index} value={each.name}>
+                      {each.name}
+                    </option>
+                  );
+                })}
+              </select>
+            </>
+          )}
           <MapSelector
             onPositionSelect={handlePositionSelect}
             defaultPosition={myDefaultPosition}
