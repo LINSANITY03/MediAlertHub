@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
