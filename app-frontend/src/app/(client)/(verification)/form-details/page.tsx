@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, FormEvent } from "react";
 
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
@@ -9,6 +9,8 @@ import province from "@/components/Province_list";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { Metadata } from "next";
+import { useRouter } from "next/navigation";
 
 // Dynamically load the Map component and disable SSR
 const MapSelector = dynamic(() => import("@/components/MapSelect"), {
@@ -41,14 +43,20 @@ export default function FormView() {
     setSelectedPosition(position);
     console.log("Selected Position:", position);
   };
+  const router = useRouter();
+  async function onSubmit(event: FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    router.push('/form-preview')
+
+  }
 
   return (
     <div className="p-20 ml-20">
-      <Link href={"/"}>
+      <Link href={"/date-of-birth"}>
         <BackLink />
       </Link>
 
-      <form className="pt-10">
+      <form className="pt-10" action="POST" onSubmit={onSubmit}>
         {/* form1 */}
         <div className="tracking-tight">
           <h2 className="text-2xl font-semibold underline">Identity details</h2>

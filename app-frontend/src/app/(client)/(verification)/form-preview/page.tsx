@@ -4,7 +4,8 @@ import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect } from "react";
 
 // Dynamically load the Map component and disable SSR
 const MapPreviwer = dynamic(() => import("@/components/MapPreview"), {
@@ -16,13 +17,20 @@ export default function FormPreview() {
     document.title = "Preview";
   }, []);
 
+  const router = useRouter();
+  async function onSubmit(event: FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    router.push('/');
+    window.alert("Thank you for adding new entry.");  
+  }
+
   return (
     <div className="p-20 ml-20">
       <Link href={"/"}>
         <BackLink />
       </Link>
 
-      <form className="pt-10">
+      <form className="pt-10" action="POST" onSubmit={onSubmit}>
         {/* form1 */}
         <div className="tracking-tight">
           <h2 className="text-2xl font-semibold underline">Identity details</h2>
