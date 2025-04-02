@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import Image from "next/image";
 import "../global.css";
+import ApolloWrapper from "@/services/ApolloProvider";
 
 const robotoSans = Roboto({
   variable: "--font-roboto-sans",
@@ -35,7 +36,9 @@ export default function VerifyLayout({
 
           <h1 className="tracking-tighter text-4xl ml-8">E-survillance</h1>
         </nav>
-        <main className="pt-40">{children}</main>
+        <main className="pt-40">
+          <ApolloWrapper>{children}</ApolloWrapper>
+        </main>
       </body>
     </html>
   );

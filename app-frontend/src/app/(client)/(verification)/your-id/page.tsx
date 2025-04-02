@@ -1,17 +1,35 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
 
-import { FormEvent } from "react";
-import { useRouter } from 'next/navigation';
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useLazyQuery } from "@apollo/client";
+import { CHECK_ID } from "@/services/user_query";
 
 export default function Verify() {
-  const router = useRouter()
+  const router = useRouter();
+  const [userId, setUserId] = useState("");
+  const [FetchData, { loading, error, data }] = useLazyQuery(CHECK_ID);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    router.push('/your-name')
+    event.preventDefault();
+
+    if (!userId.trim()) return;
+    FetchData({ variables: { doctorId: userId } });
+    {
+      loading && alert("loading");
+    }
+    {
+      error && alert("error");
+    }
+    {
+      data && data.verifyDoctorId.success == "true"
+      alert(data.verifyDoctorId.message);
+      router.push("/your-name");
+    }
   }
 
   return (
@@ -38,6 +56,8 @@ export default function Verify() {
               type="text"
               name="work_id"
               id="work_id"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
               maxLength={20}
               required
             />

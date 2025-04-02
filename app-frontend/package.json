@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.5",
     "@tailwindcss/postcss": "^4.0.3",
+    "graphql": "^16.10.0",
+    "graphql-tag": "^2.12.6",
     "leaflet": "^1.9.4",
     "next": "15.1.6",
     "react": "^19.0.0",

@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgresql
+      POSTGRES_DB: doctors_db
+    ports:
+      - 5432:5432
+    
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - 2181:2181
+      
