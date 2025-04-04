@@ -8,27 +8,25 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLazyQuery } from "@apollo/client";
 import { CHECK_ID } from "@/services/user_query";
+import { toast } from 'react-toastify';
 
 export default function Verify() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [FetchData, { loading, error, data }] = useLazyQuery(CHECK_ID);
+  const [FetchData, {data}] = useLazyQuery(CHECK_ID);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!userId.trim()) return;
     FetchData({ variables: { doctorId: userId } });
-    {
-      loading && alert("loading");
-    }
-    {
-      error && alert("error");
-    }
-    {
-      data && data.verifyDoctorId.success == "true"
-      alert(data.verifyDoctorId.message);
-      router.push("/your-name");
+    if (data) {
+      if (data.verifyDoctorId.success == true) {
+        toast.success(data.verifyDoctorId.message)
+        router.push("/your-name");
+      } else {
+        toast.error(data.verifyDoctorId.message)
+      }
     }
   }
 
@@ -58,7 +56,7 @@ export default function Verify() {
               id="work_id"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              maxLength={20}
+              maxLength={50}
               required
             />
           </div>

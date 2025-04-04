@@ -5,6 +5,7 @@ import Continue_btn from "@/components/ContinueButton";
 import Link from "next/link";
 import { FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from 'react-toastify';
 
 export default function VerifyName() {
 
