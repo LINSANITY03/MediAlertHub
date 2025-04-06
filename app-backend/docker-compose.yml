@@ -13,5 +13,5 @@ services:
     image: redis
     container_name: redis
     ports:
-      - 2181:2181
+      - 6379:6379
       

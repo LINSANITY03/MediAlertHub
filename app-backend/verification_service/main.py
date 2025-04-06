@@ -14,7 +14,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
 )
-r = redis.Redis(host="redis", port=6379, decode_responses=True)
+r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 
 @strawberry.type
@@ -28,13 +28,14 @@ class Query:
     @strawberry.field
     def verify_doctor_id(self, doctorId: str) -> VerificationResponse:
         try:
-            if verify_doctor_id(doctorId):  
+            if verify_doctor_id(doctorId):
+                r.set(doctorId, "step1", ex=300)  
                 return VerificationResponse(
                     success=True, message=f"{doctorId}: Doctor ID is valid"
                 )
             return VerificationResponse(success=False, message="Invalid Doctor ID.")
-        except:
-            return VerificationResponse(success=False, message="Error has occured.")
+        except Exception as e:
+            return VerificationResponse(success=False, message="Error has occured. {e}")
 
 
 schema = strawberry.Schema(query=Query)
