@@ -16,11 +16,16 @@ app.add_middleware(
 )
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
+@strawberry.type
+class Body:
+    id:str
+    step:int
 
 @strawberry.type
 class VerificationResponse:
     success: bool
     message: str
+    body: Body
 
 
 @strawberry.type
@@ -29,9 +34,9 @@ class Query:
     def verify_doctor_id(self, doctorid: str) -> VerificationResponse:
         try:
             if verify_doctor_id(doctorid):
-                r.set(doctorid, "step1", ex=300)  
+                r.set(doctorid, 1, ex=300)  
                 return VerificationResponse(
-                    success=True, message=f"{doctorid}: Doctor ID is valid"
+                    success=True, message=f"{doctorid}: Doctor ID is valid", body=Body(id=doctorid, step=1)
                 )
             return VerificationResponse(success=False, message="Invalid Doctor ID.")
         except Exception:

@@ -5,6 +5,10 @@ query MyQuery($doctorid: String!) {
     verifyDoctorId(doctorid: $doctorid) {
         message
         success
+        body {
+            id
+            step
+        }
     }
 }
 `;

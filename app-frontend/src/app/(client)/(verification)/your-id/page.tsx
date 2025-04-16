@@ -19,10 +19,11 @@ export default function Verify() {
     event.preventDefault();
 
     if (!userId.trim()) return;
-    FetchData({ variables: { doctorId: userId } });
+    FetchData({ variables: { doctorid: `${userId}` } });
     if (data) {
       if (data.verifyDoctorId.success == true) {
         toast.success(data.verifyDoctorId.message)
+        localStorage.setItem("all-cache", JSON.stringify(data.verifyDoctorId.body))
         router.push("/your-name");
       } else {
         toast.error(data.verifyDoctorId.message)

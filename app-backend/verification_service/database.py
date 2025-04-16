@@ -14,9 +14,9 @@ def get_db():
     finally:
         db.close()
 
-def verify_doctor_id(doctor_id: str):
+def verify_doctor_id(doctorid: str):
     """Check if doctor_id exists in the database."""
     db = next(get_db())
-    doctor = db.query(User).filter_by(id=doctor_id).first()
+    doctor = db.query(User).filter_by(id=doctorid).first()
     db.close()
     return doctor is not None
