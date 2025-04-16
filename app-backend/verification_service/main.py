@@ -1,3 +1,4 @@
+from typing import Optional
 import redis
 import strawberry
 from fastapi import FastAPI
@@ -25,7 +26,7 @@ class Body:
 class VerificationResponse:
     success: bool
     message: str
-    body: Body
+    body: Optional[Body] = None
 
 
 @strawberry.type
