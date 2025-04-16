@@ -1,10 +1,10 @@
-from fastapi import FastAPI
-from strawberry.fastapi import GraphQLRouter
-from starlette.middleware.cors import CORSMiddleware
-from .database import verify_doctor_id
-
-import strawberry
 import redis
+import strawberry
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+from strawberry.fastapi import GraphQLRouter
+
+from .database import verify_doctor_id
 
 app = FastAPI()
 app.add_middleware(
@@ -26,15 +26,15 @@ class VerificationResponse:
 @strawberry.type
 class Query:
     @strawberry.field
-    def verify_doctor_id(self, doctorId: str) -> VerificationResponse:
+    def verify_doctor_id(self, doctorid: str) -> VerificationResponse:
         try:
-            if verify_doctor_id(doctorId):
-                r.set(doctorId, "step1", ex=300)  
+            if verify_doctor_id(doctorid):
+                r.set(doctorid, "step1", ex=300)  
                 return VerificationResponse(
-                    success=True, message=f"{doctorId}: Doctor ID is valid"
+                    success=True, message=f"{doctorid}: Doctor ID is valid"
                 )
             return VerificationResponse(success=False, message="Invalid Doctor ID.")
-        except Exception as e:
+        except Exception:
             return VerificationResponse(success=False, message="Error has occured. {e}")
 
 

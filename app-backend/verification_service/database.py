@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from .model import User
 
 engine = create_engine('postgresql+psycopg2://postgres:postgresql@localhost:5432/doctors_db')

@@ -1,0 +1,27 @@
+[tool.ruff]
+# Where your code lives
+src = ["app", "tests"]
+
+# Set desired line length (match Black if using it)
+line-length = 88
+
+# Use common rule sets (add/remove depending on needs)
+lint.select = [
+    "E",    # pycodestyle (errors)
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade (modern Python)
+    "N",    # pep8-naming
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+]
+
+# You can ignore specific rules if needed
+lint.ignore = [
+    "E501",  # line too long (if you're okay with Black handling this)
+]
+
+# Optional but useful for FastAPI: typing help
+target-version = "py311"
+show-fixes = true
