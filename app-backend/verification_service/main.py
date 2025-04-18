@@ -1,4 +1,5 @@
-from typing import Optional
+import uuid
+
 import redis
 import strawberry
 from fastapi import FastAPI
@@ -26,22 +27,31 @@ class Body:
 class VerificationResponse:
     success: bool
     message: str
-    body: Optional[Body] = None
+    body: Body | None = None
 
 
 @strawberry.type
 class Query:
     @strawberry.field
     def verify_doctor_id(self, doctorid: str) -> VerificationResponse:
+
         try:
+            # Validate UUID format first — this will raise ValueError if invalid
+            uuid.UUID(doctorid)
+
+            if verify_doctor_id(doctorid) is False:
+                return VerificationResponse(success=False, message="Invalid Doctor ID.")
+            
             if verify_doctor_id(doctorid):
                 r.set(doctorid, 1, ex=300)  
                 return VerificationResponse(
                     success=True, message=f"{doctorid}: Doctor ID is valid", body=Body(id=doctorid, step=1)
                 )
-            return VerificationResponse(success=False, message="Invalid Doctor ID.")
-        except Exception:
-            return VerificationResponse(success=False, message="Error has occured. {e}")
+        except ValueError:
+            return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
+            
+        except Exception as e:
+            return VerificationResponse(success=False, message=f"Error has occured. {str(e)}")
 
 
 schema = strawberry.Schema(query=Query)

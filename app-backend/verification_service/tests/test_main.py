@@ -40,3 +40,50 @@ def test_verify_doctor_id_valid():
     assert response_data["data"]["verifyDoctorId"]["message"] == f"{doctor_id}: Doctor ID is valid"
     assert response_data["data"]["verifyDoctorId"]["body"]["id"] == doctor_id
     assert response_data["data"]["verifyDoctorId"]["body"]["step"] == 1
+
+def test_verify_doctor_id_invalid():
+    """Test case for an invalid doctor ID.
+
+    Verifies that an invalid doctor ID returns a failure response
+    with the appropriate error message.
+    """
+    doctor_id = "dd0804db-35d4-4965-a7a2-ce6d3ffc2e71"
+    query = f"""
+    query {{
+        verifyDoctorId(doctorid: "{doctor_id}") {{
+            success
+            message
+        }}
+    }}
+    """
+
+    response = client.post(
+        "/graphql", json={"query": query}
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["data"]["verifyDoctorId"]["success"] is False
+    assert response_data["data"]["verifyDoctorId"]["message"] == "Invalid Doctor ID."
+
+def test_verify_doctor_id_error():
+    """Test case for a malformed or error-inducing doctor ID.
+
+    Verifies that a doctor ID that causes an exception (e.g., invalid UUID)
+    returns an appropriate error message without crashing.
+    """
+    query = """
+    query {{
+        verifyDoctorId(doctorid: "errorDoctorId") {{
+            success
+            message
+        }}
+    }}
+    """
+
+    response = client.post(
+        "/graphql", json={"query": query}
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["data"]["verifyDoctorId"]["success"] is False
+    assert "Error has occured" in response_data["data"]["verifyDoctorId"]["message"]

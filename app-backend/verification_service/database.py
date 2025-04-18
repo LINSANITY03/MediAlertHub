@@ -19,4 +19,4 @@ def verify_doctor_id(doctorid: str):
     db = next(get_db())
     doctor = db.query(User).filter_by(id=doctorid).first()
     db.close()
-    return doctor is not None
+    return doctor if doctor else False
