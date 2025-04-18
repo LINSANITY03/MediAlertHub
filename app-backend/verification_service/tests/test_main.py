@@ -6,12 +6,14 @@ GraphQL API.
 """
 
 from fastapi.testclient import TestClient
+from unittest.mock import patch
 
-from ..main import app
+from verification_service.main import app
 
 client = TestClient(app)
 
-def test_verify_doctor_id_valid():
+@patch("verification_service.main.verify_doctor_id", return_value=True)
+def test_verify_doctor_id_valid(mock_verify):
     """Test case for a valid doctor ID.
 
     Verifies that a valid doctor ID returns the correct success message
@@ -40,6 +42,7 @@ def test_verify_doctor_id_valid():
     assert response_data["data"]["verifyDoctorId"]["message"] == f"{doctor_id}: Doctor ID is valid"
     assert response_data["data"]["verifyDoctorId"]["body"]["id"] == doctor_id
     assert response_data["data"]["verifyDoctorId"]["body"]["step"] == 1
+    mock_verify.assert_called_once_with(doctor_id)
 
 def test_verify_doctor_id_invalid():
     """Test case for an invalid doctor ID.
@@ -71,9 +74,10 @@ def test_verify_doctor_id_error():
     Verifies that a doctor ID that causes an exception (e.g., invalid UUID)
     returns an appropriate error message without crashing.
     """
-    query = """
+    doctor_id = "errorDoctorId"
+    query = f"""
     query {{
-        verifyDoctorId(doctorid: "errorDoctorId") {{
+        verifyDoctorId(doctorid: "{doctor_id}") {{
             success
             message
         }}
@@ -86,4 +90,4 @@ def test_verify_doctor_id_error():
     assert response.status_code == 200
     response_data = response.json()
     assert response_data["data"]["verifyDoctorId"]["success"] is False
-    assert "Error has occured" in response_data["data"]["verifyDoctorId"]["message"]
+    assert response_data["data"]["verifyDoctorId"]["message"] == "Doctor ID is not a valid UUID."

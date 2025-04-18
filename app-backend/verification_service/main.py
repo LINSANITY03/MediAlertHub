@@ -38,15 +38,15 @@ class Query:
         try:
             # Validate UUID format first — this will raise ValueError if invalid
             uuid.UUID(doctorid)
-
-            if verify_doctor_id(doctorid) is False:
-                return VerificationResponse(success=False, message="Invalid Doctor ID.")
             
             if verify_doctor_id(doctorid):
                 r.set(doctorid, 1, ex=300)  
                 return VerificationResponse(
                     success=True, message=f"{doctorid}: Doctor ID is valid", body=Body(id=doctorid, step=1)
                 )
+            else:
+                return VerificationResponse(success=False, message="Invalid Doctor ID.")
+            
         except ValueError:
             return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
             
