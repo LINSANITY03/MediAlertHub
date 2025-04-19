@@ -1,3 +1,5 @@
+"""Database setup and utility functions for doctor verification."""
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -7,7 +9,12 @@ engine = create_engine('postgresql+psycopg2://postgres:postgresql@localhost:5432
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
-    """Dependency to get DB session."""
+    """
+    Dependency function to get a database session.
+
+    Yields:
+        db (Session): SQLAlchemy session object.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -15,7 +22,15 @@ def get_db():
         db.close()
 
 def verify_doctor_id(doctorid: str):
-    """Check if doctor_id exists in the database."""
+    """
+    Verify if a doctor with the given ID exists.
+
+    Params:
+        doctorid (str): The doctor's unique identifier.
+
+    Returns:
+        User | bool: User object if found, otherwise False.
+    """
     db = next(get_db())
     doctor = db.query(User).filter_by(id=doctorid).first()
     db.close()

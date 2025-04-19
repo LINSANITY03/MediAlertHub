@@ -5,8 +5,9 @@ This file contains tests that verify the correct behavior of the FastAPI
 GraphQL API.
 """
 
-from fastapi.testclient import TestClient
 from unittest.mock import patch
+
+from fastapi.testclient import TestClient
 
 from verification_service.main import app
 
