@@ -1,7 +1,34 @@
-import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { ApolloClient, InMemoryCache, HttpLink, from } from "@apollo/client";
+import { setContext } from '@apollo/client/link/context';
 
-const client = new ApolloClient({
+// fastapi graphql endpoint
+const httpLink = new HttpLink({
     uri: "http://127.0.0.1:8000/graphql",
+});
+
+// function to add localstorage item to headers
+const verifLink = setContext((_, { headers, needsAuth }) => {
+    console.log("needsAuth", needsAuth);
+
+    // Only proceed if we're on the client-side
+    if (typeof window === 'undefined' || !needsAuth) {
+        return { headers };
+    }
+
+    const token = localStorage.getItem("all-cache");
+    console.log("current token", token)
+
+    return {
+        headers: {
+            ...headers,
+            ...(token ? {"Authorization": `Bearer ${token}`} : {}),
+        },
+    };
+}); 
+
+// create an instance of apolloclient
+const client = new ApolloClient({
+    link: from([verifLink, httpLink]), // verifLink runs first before httplink (similar to decorators)
     cache: new InMemoryCache(),
 });
 

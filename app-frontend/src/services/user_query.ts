@@ -12,3 +12,16 @@ query MyQuery($doctorid: String!) {
     }
 }
 `;
+
+export const CHECK_USERNAME = gql`
+query MyQuery($f_name: String!, $l_name: String!) {
+    verifyUsername(fName: $f_name, lName: $l_name) {
+        message
+        success
+        body {
+            id
+            step
+        }
+    }
+}
+`;

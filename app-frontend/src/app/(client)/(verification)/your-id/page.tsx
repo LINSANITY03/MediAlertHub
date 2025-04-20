@@ -13,23 +13,28 @@ import { toast } from 'react-toastify';
 export default function Verify() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [FetchData, {data}] = useLazyQuery(CHECK_ID);
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!userId.trim()) return;
-    FetchData({ variables: { doctorid: `${userId}` } });
-    if (data) {
+  const [FetchData, {loading}] = useLazyQuery(CHECK_ID, {
+    onCompleted: (data) => {
       if (data.verifyDoctorId.success == true) {
         toast.success(data.verifyDoctorId.message)
         localStorage.setItem("all-cache", JSON.stringify(data.verifyDoctorId.body))
         router.push("/your-name");
       } else {
         toast.error(data.verifyDoctorId.message)
-      }
+        }
+    },
+    onError: (error) => {
+      toast.error(error.message)
     }
-  }
+  });
+  
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    console.log("this is working")
+    event.preventDefault();
+
+    if (!userId.trim()) return;
+    FetchData({ variables: { doctorid: `${userId}` } });
+  };
 
   return (
     <div className="p-10 ml-20 mt-40">
@@ -40,7 +45,7 @@ export default function Verify() {
         <h2 className="underline tracking-tight text-2xl font-semibold">
           Verify your details
         </h2>
-        <form action="POST" onSubmit={onSubmit}>
+        <form action="POST" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="work_id">
               <div className="leading-5 tracking-tight">

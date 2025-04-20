@@ -1,14 +1,15 @@
 """Main application module defining the GraphQL API for doctor ID verification."""
 
 import uuid
-
 import redis
 import strawberry
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
+from strawberry.types import Info
 
-from .database import verify_doctor_id
+from .database import get_id, get_username
 
 app = FastAPI()
 app.add_middleware(
@@ -55,11 +56,11 @@ class Query:
         Returns:
             VerificationResponse: Result of the verification.
         """
-
+        print("asdasd", doctorid)
         try:
             # Validate UUID format first — this will raise ValueError if invalid
             uuid.UUID(doctorid)
-            if verify_doctor_id(doctorid):
+            if get_id(doctorid):
                 r.set(doctorid, 1, ex=300)
                 return VerificationResponse(
                     success=True, message=f"{doctorid}: Doctor ID is valid",
@@ -71,7 +72,33 @@ class Query:
         except Exception:
             return VerificationResponse(success=False,
                                         message="Something went wrong. Try again later.")
-
+    
+    @strawberry.field
+    def verify_username(f_name: str, l_name: str, info: Info) -> VerificationResponse:
+        
+        try:
+            request: Request = info.context["request"]
+            headers = request.headers
+            token = headers.get("authorization")
+            print(token)
+            if not token:
+                raise HTTPException(status_code=401, detail="Token required")
+            print(headers)
+            
+            if get_username(f_name, l_name):
+                return VerificationResponse(
+                    success=True, message="Username is valid",
+                    # body=Body(id=doctorid, step=1)
+                )
+            return VerificationResponse(success=False, message="Invalid Username.")
+        # except ValueError:
+        #     return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
+        except HTTPException as e:
+            return VerificationResponse(success=False,
+                                        message=e.detail)
+        except Exception:
+            return VerificationResponse(success=False,
+                                        message="Something went wrong. Try again later.")
 
 schema = strawberry.Schema(query=Query)
 graphql_app = GraphQLRouter(schema=schema)

@@ -21,7 +21,7 @@ def get_db():
     finally:
         db.close()
 
-def verify_doctor_id(doctorid: str):
+def get_id(doctorid: str):
     """
     Verify if a doctor with the given ID exists.
 
@@ -33,5 +33,11 @@ def verify_doctor_id(doctorid: str):
     """
     db = next(get_db())
     doctor = db.query(User).filter_by(id=doctorid).first()
+    db.close()
+    return doctor if doctor else False
+
+def get_username(f_name: str, l_name: str):
+    db = next(get_db())
+    doctor = db.query(User).filter_by(first_name=f_name, last_name=l_name).first()
     db.close()
     return doctor if doctor else False

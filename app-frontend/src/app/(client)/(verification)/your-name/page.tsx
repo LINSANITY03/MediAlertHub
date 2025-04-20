@@ -3,9 +3,11 @@
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
 import Link from "next/link";
-import { FormEvent, useEffect } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from 'react-toastify';
+import { useLazyQuery } from "@apollo/client";
+import { CHECK_USERNAME } from "@/services/user_query";
 
 export default function VerifyName() {
 
@@ -13,10 +15,31 @@ export default function VerifyName() {
     document.title = "Enter your name";
   },[])
   
-  const router = useRouter()
+  const router = useRouter();
+  const [first_name, set_fname] = useState("");
+  const [last_name, set_lname] = useState("");
+  const [FetchData, {loading}] = useLazyQuery(CHECK_USERNAME, {
+    onCompleted: (data) => {
+      if (data.verifyUsername.success === true) {
+        toast.success(data.verifyUsername.message);
+        localStorage.setItem("all-cache", JSON.stringify(data.verifyUsername.body));
+        router.push('/date-of-birth');
+      } else {
+        toast.error(data.verifyUsername?.message || "Something went wrong.");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    }
+  });
+
   async function onSubmit(event: FormEvent<HTMLFormElement>){
-    event.preventDefault()
-    router.push('/date-of-birth')
+
+    event.preventDefault();
+    if (!first_name.trim()) return;
+    if (!last_name.trim()) return;
+
+    FetchData({ variables: { f_name: `${first_name}`, l_name: `${last_name}` }, context: { needsAuth: true} });
   }
 
   return (
@@ -24,7 +47,7 @@ export default function VerifyName() {
       <Link href={"/your-id"}>
         <BackLink />
       </Link>
-      <form action="" onSubmit={onSubmit}>
+      <form action="POST" onSubmit={onSubmit}>
         <div className="grid grid-rows-4 mt-5">
           <h2 className="underline tracking-tight text-2xl font-semibold">
             Enter your name
@@ -40,6 +63,8 @@ export default function VerifyName() {
               type="text"
               name="first_name"
               id="first_name"
+              value={first_name}
+              onChange={(e) => set_fname(e.target.value)}
               maxLength={20}
               required
             />
@@ -55,6 +80,8 @@ export default function VerifyName() {
               type="text"
               name="last_name"
               id="last_name"
+              value={last_name}
+              onChange={(e) => set_lname(e.target.value)}
               maxLength={20}
               required
             />
