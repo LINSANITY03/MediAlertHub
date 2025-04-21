@@ -21,7 +21,7 @@ const verifLink = setContext((_, { headers, needsAuth }) => {
     return {
         headers: {
             ...headers,
-            ...(token ? {"Authorization": `Bearer ${token}`} : {}),
+            ...(token ? {"Authorization": `${token}`} : {}),
         },
     };
 }); 

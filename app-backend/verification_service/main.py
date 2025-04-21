@@ -1,10 +1,11 @@
 """Main application module defining the GraphQL API for doctor ID verification."""
 
+import json
 import uuid
+
 import redis
 import strawberry
-
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
@@ -56,12 +57,14 @@ class Query:
         Returns:
             VerificationResponse: Result of the verification.
         """
-        print("asdasd", doctorid)
+
         try:
             # Validate UUID format first — this will raise ValueError if invalid
             uuid.UUID(doctorid)
+
+            # ID verification logic
             if get_id(doctorid):
-                r.set(doctorid, 1, ex=300)
+                r.set(doctorid, 1, ex=None)
                 return VerificationResponse(
                     success=True, message=f"{doctorid}: Doctor ID is valid",
                     body=Body(id=doctorid, step=1)
@@ -72,27 +75,60 @@ class Query:
         except Exception:
             return VerificationResponse(success=False,
                                         message="Something went wrong. Try again later.")
-    
+
     @strawberry.field
-    def verify_username(f_name: str, l_name: str, info: Info) -> VerificationResponse:
-        
+    def verify_username(self, f_name: str, l_name: str, info: Info) -> VerificationResponse:
+        """
+        Verifies the provided first and last name against the system.
+
+        Extracts the authorization token from request headers, verifies UUID,
+        checks Redis cache for step tracking, and updates verification progress.
+
+        Args:
+            f_name (str): First name of the user to verify.
+            l_name (str): Last name of the user to verify.
+            info (Info): GraphQL resolver context containing the FastAPI request.
+
+        Returns:
+            VerificationResponse: Contains success status, message,
+            and optional body with ID and step.
+
+        Raises:
+            HTTPException: If token is missing or does not match.
+        """
         try:
             request: Request = info.context["request"]
             headers = request.headers
+
+            # Extract token from headers
             token = headers.get("authorization")
-            print(token)
             if not token:
                 raise HTTPException(status_code=401, detail="Token required")
-            print(headers)
-            
+
+            # Parse JSON token and validate UUID
+            auth_token = json.loads(token)
+            uuid.UUID(auth_token["id"])
+
+            # Redis cache check
+            cache_id = r.get(auth_token["id"])
+            if cache_id:
+                if cache_id == str(auth_token["step"]):
+                    pass # Step matches; proceed
+                else:
+                    raise HTTPException(status_code=401, detail="Token does not match.")
+            else:
+                raise HTTPException(status_code=401, detail="Token1 does not match.")
+
+            # Username verification logic
             if get_username(f_name, l_name):
+                r.set(auth_token["id"], 2, ex=None)
                 return VerificationResponse(
                     success=True, message="Username is valid",
-                    # body=Body(id=doctorid, step=1)
+                    body=Body(id=auth_token["id"], step=2)
                 )
             return VerificationResponse(success=False, message="Invalid Username.")
-        # except ValueError:
-        #     return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
+        except ValueError:
+            return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
         except HTTPException as e:
             return VerificationResponse(success=False,
                                         message=e.detail)
