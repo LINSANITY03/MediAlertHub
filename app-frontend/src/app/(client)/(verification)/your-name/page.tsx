@@ -9,8 +9,30 @@ import { toast } from 'react-toastify';
 import { useLazyQuery } from "@apollo/client";
 import { CHECK_USERNAME } from "@/services/user_query";
 
+/**
+ * VerifyName Component
+ * 
+ * This component is used to verify a user's first and last name. It performs a lazy GraphQL query
+ * to check the validity of the entered name and stores the response in localStorage if successful.
+ * 
+ * Upon successful verification, the user is redirected to the "date-of-birth" page.
+ * 
+ * Side effect:
+ * - Sets the document title to "Enter your name" when the component mounts.
+ *
+ * Features:
+ * - Input field for First, and Last name
+ * - Apollo Client (useLazyQuery)
+ * - React Toastify (toast)
+ * - Next.js routing (useRouter)
+ * 
+ * @returns {JSX.Element} The rendered verify page with form and navigation elements.
+ */
 export default function VerifyName() {
 
+  /**
+   * Sets the browser tab title when the component mounts.
+   */
   useEffect(()=>{
     document.title = "Enter your name";
   },[])
@@ -33,7 +55,16 @@ export default function VerifyName() {
     }
   });
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>){
+  /**
+   * Handles form submission for verifying a user's name.
+   *
+   * Prevents the default form behavior, validates input fields, and sends a GraphQL query
+   * to verify the username using the Apollo Client.
+   *
+   * @param {FormEvent<HTMLFormElement>} event - The form submission event.
+   * @returns {void}
+   */
+  async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void>{
 
     event.preventDefault();
     if (!first_name.trim()) return;

@@ -18,6 +18,18 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * VerifyLayout component wraps the "Verify your details" page layout, 
+ * providing global styles, metadata, and application context such as Apollo Client 
+ * and toast notifications.
+ *
+ * This layout includes a fixed navigation bar with a logo and title, 
+ * and renders its children below the navbar inside the main content area.
+ *
+ * @param {object} props
+ * @param {React.ReactNode} props.children - The components to be rendered inside the layout.
+ * @returns {JSX.Element} The layout structure including navbar, content area, and toast container.
+ */
 export default function VerifyLayout({
   children,
 }: Readonly<{

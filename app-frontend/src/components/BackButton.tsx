@@ -1,3 +1,11 @@
+/** 
+ * BackLink component renders an inline link with an SVG icon and the text "Back".
+ * 
+ * This component is designed to be used as a back navigation link, typically
+ * in the UI of a web application.
+ * 
+ * @returns {JSX.Element} A JSX element containing an SVG icon and the text "Back".
+ */
 export default function BackLink(){
     return (
         <div className="inline-flex items-center">

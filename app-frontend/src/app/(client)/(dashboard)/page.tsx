@@ -1,6 +1,13 @@
 import Image from "next/image";
 import Link from 'next/link';
 
+/** 
+ * Home component renders the homepage of the E-surveillance application.
+ * It includes the logo, title, and a section showcasing services with a 
+ * navigational link to provide details of diagnosed conditions.
+ * 
+ * @returns {JSX.Element} The homepage layout with the logo, title, and services list.
+ */
 export default function Home() {
   return (
     <div className="grid grid-rows-2:3fr 1fr h-screen">

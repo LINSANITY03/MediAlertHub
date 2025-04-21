@@ -10,6 +10,21 @@ import { useLazyQuery } from "@apollo/client";
 import { CHECK_ID } from "@/services/user_query";
 import { toast } from 'react-toastify';
 
+/**
+ * Verify component allows users to input and validate their Work ID.
+ * 
+ * On successful verification via GraphQL query, the user is redirected to a new page
+ * and relevant data is stored in localStorage. It also handles error messaging using toast notifications.
+ *
+ * Features:
+ * - Input field for Work ID
+ * - Form submission with validation
+ * - Lazy query using Apollo Client
+ * - Navigation via Next.js router
+ * - Success and error toasts for feedback
+ *
+ * @returns {JSX.Element} The rendered verify page with form and navigation elements.
+ */
 export default function Verify() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
@@ -28,8 +43,16 @@ export default function Verify() {
     }
   });
   
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    console.log("this is working")
+  /**
+   * Handles the form submission for verifying a doctor's Work ID.
+   *
+   * Prevents the default form action, validates the user input, and triggers a lazy GraphQL query
+   * to check the doctor's ID using Apollo Client.
+   *
+   * @param {FormEvent<HTMLFormElement>} event - The form submit event.
+   * @returns {void}
+   */
+  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
 
     if (!userId.trim()) return;
