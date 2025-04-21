@@ -13,7 +13,7 @@ import { toast } from 'react-toastify';
 export default function Verify() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [FetchData, {loading}] = useLazyQuery(CHECK_ID, {
+  const [FetchData] = useLazyQuery(CHECK_ID, {
     onCompleted: (data) => {
       if (data.verifyDoctorId.success == true) {
         toast.success(data.verifyDoctorId.message)

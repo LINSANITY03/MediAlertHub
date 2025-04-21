@@ -9,7 +9,6 @@ import province from "@/components/Province_list";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Metadata } from "next";
 import { useRouter } from "next/navigation";
 
 // Dynamically load the Map component and disable SSR

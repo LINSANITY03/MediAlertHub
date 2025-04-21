@@ -18,7 +18,7 @@ export default function VerifyName() {
   const router = useRouter();
   const [first_name, set_fname] = useState("");
   const [last_name, set_lname] = useState("");
-  const [FetchData, {loading}] = useLazyQuery(CHECK_USERNAME, {
+  const [FetchData] = useLazyQuery(CHECK_USERNAME, {
     onCompleted: (data) => {
       if (data.verifyUsername.success === true) {
         toast.success(data.verifyUsername.message);
