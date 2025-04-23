@@ -2,6 +2,7 @@
 
 import json
 import uuid
+from datetime import datetime
 
 import redis
 import strawberry
@@ -10,7 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 
-from .database import get_id, get_username
+from .database import get_dob, get_id, get_username
 
 app = FastAPI()
 app.add_middleware(
@@ -127,6 +128,57 @@ class Query:
                     body=Body(id=auth_token["id"], step=2)
                 )
             return VerificationResponse(success=False, message="Invalid Username.")
+        except ValueError:
+            return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
+        except HTTPException as e:
+            return VerificationResponse(success=False,
+                                        message=e.detail)
+        except Exception:
+            return VerificationResponse(success=False,
+                                        message="Something went wrong. Try again later.")
+
+    @strawberry.field
+    def verify_dob(self, dob: datetime, info: Info ) -> VerificationResponse:
+        """
+        Verifies a doctor's date of birth using the provided token.
+
+        Args:
+            dob (datetime): The date of birth to verify.
+            info (Info): GraphQL request context containing headers.
+
+        Returns:
+            VerificationResponse: Response indicating whether the DOB is valid.
+        """
+        try:
+            request: Request = info.context["request"]
+            headers = request.headers
+
+            # Extract token from headers
+            token = headers.get("authorization")
+            if not token:
+                raise HTTPException(status_code=401, detail="Token required")
+            # Parse JSON token and validate UUID
+            auth_token = json.loads(token)
+            uuid.UUID(auth_token["id"])
+
+            # Redis cache check
+            cache_id = r.get(auth_token["id"])
+            if cache_id:
+                if cache_id == str(auth_token["step"]):
+                    pass # Step matches; proceed
+                else:
+                    raise HTTPException(status_code=401, detail="Token does not match.")
+            else:
+                raise HTTPException(status_code=401, detail="Token does not match.")
+
+            # date-of-birth verification logic
+            if get_dob(dob):
+                r.set(auth_token["id"], 3, ex=None)
+                return VerificationResponse(
+                    success=True, message="Valid dob",
+                    body=Body(id=auth_token["id"], step=3)
+                )
+            return VerificationResponse(success=False, message="Invalid dob.")
         except ValueError:
             return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
         except HTTPException as e:

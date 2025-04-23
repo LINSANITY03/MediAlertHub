@@ -1,4 +1,5 @@
 """Database setup and utility functions for doctor verification."""
+from datetime import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -37,7 +38,32 @@ def get_id(doctorid: str):
     return doctor if doctor else False
 
 def get_username(f_name: str, l_name: str):
+    """
+    Retrieves a user from the database based on first and last name.
+
+    Args:
+        f_name (str): First name of the user.
+        l_name (str): Last name of the user.
+
+    Returns:
+        User | bool: User object if found, else False.
+    """
     db = next(get_db())
     doctor = db.query(User).filter_by(first_name=f_name, last_name=l_name).first()
+    db.close()
+    return doctor if doctor else False
+
+def get_dob(dob: datetime):
+    """
+    Retrieves a user from the database based on date of birth.
+
+    Args:
+        dob (datetime): Date of birth of the user.
+
+    Returns:
+        User | bool: User object if found, else False.
+    """
+    db = next(get_db())
+    doctor = db.query(User).filter_by(dob=dob).first()
     db.close()
     return doctor if doctor else False
