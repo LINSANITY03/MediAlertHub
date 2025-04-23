@@ -25,3 +25,16 @@ query MyQuery($f_name: String!, $l_name: String!) {
     }
 }
 `;
+
+export const CHECK_DOB = gql`
+query MyQuery($dob: Date!){
+    verifyDob(dob: $dob) {
+        message
+        success
+        body {
+            id
+            step
+            }
+    }
+}
+`;

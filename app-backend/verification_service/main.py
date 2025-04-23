@@ -2,7 +2,7 @@
 
 import json
 import uuid
-from datetime import datetime
+from datetime import date
 
 import redis
 import strawberry
@@ -138,7 +138,7 @@ class Query:
                                         message="Something went wrong. Try again later.")
 
     @strawberry.field
-    def verify_dob(self, dob: datetime, info: Info ) -> VerificationResponse:
+    def verify_dob(self, dob: date, info: Info ) -> VerificationResponse:
         """
         Verifies a doctor's date of birth using the provided token.
 
@@ -170,7 +170,7 @@ class Query:
                     raise HTTPException(status_code=401, detail="Token does not match.")
             else:
                 raise HTTPException(status_code=401, detail="Token does not match.")
-
+            
             # date-of-birth verification logic
             if get_dob(dob):
                 r.set(auth_token["id"], 3, ex=None)

@@ -4,19 +4,54 @@ import Link from "next/link";
 import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
 
-import { FormEvent, useEffect } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
+import { useLazyQuery } from "@apollo/client";
+import { CHECK_DOB } from "@/services/user_query";
+import { toast } from 'react-toastify';
 
+/**
+ * The Verify component is responsible for verifying the user's date of birth (DOB).
+ * It prompts the user to enter their DOB and sends it to the backend for validation.
+ */
 export default function Verify() {
-  const router = useRouter()
+  const router = useRouter();
+  const [dob, setdob] = useState("");
+
+  /**
+   * Lazy-loaded query to verify the user's date of birth.
+   * If the verification is successful, the user is redirected to the form details page.
+   * 
+   * @param {object} data - The response data from the server after attempting to verify the DOB.
+   */
+  const [FetchData] = useLazyQuery(CHECK_DOB,{
+    onCompleted: (data) => {
+      if (data.verifyDob.success == true) {
+        toast.success(data.verifyDob.message)
+        localStorage.setItem("all-cache", JSON.stringify(data.verifyDob.body))
+        router.push("/form-details");
+      } else {
+        toast.error(data.verifyDob.message)
+        }
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    }
+  })
+
   useEffect(() => {
     document.title = "What is your DOB?";
   }, []);
 
+  /**
+   * Handles the form submission when the user enters their DOB.
+   * Prevents the default form behavior and triggers the verification request.
+   * 
+   * @param {FormEvent<HTMLFormElement>} event - The form submission event.
+   */
   async function onSubmit(event: FormEvent<HTMLFormElement>){
     event.preventDefault()
-    router.push('/form-details')
-
+    FetchData({ variables: { dob: `${dob}` }, context: { needsAuth: true} });
   }
   return (
     <div className="p-10 ml-20">
@@ -39,6 +74,8 @@ export default function Verify() {
               type="date"
               name="dob"
               id="dob"
+              value={dob}
+              onChange={(e) => {setdob(e.target.value)}}
               maxLength={20}
               required
             />
