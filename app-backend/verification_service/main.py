@@ -117,7 +117,7 @@ class Query:
                 else:
                     raise HTTPException(status_code=401, detail="Token does not match.")
             else:
-                raise HTTPException(status_code=401, detail="Token1 does not match.")
+                raise HTTPException(status_code=401, detail="Token does not match.")
 
             # Username verification logic
             if get_username(f_name, l_name):
