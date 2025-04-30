@@ -3,6 +3,7 @@
 import json
 import uuid
 from datetime import date
+from pydantic import TypeAdapter, ValidationError
 
 import redis
 import strawberry
@@ -138,21 +139,30 @@ class Query:
                                         message="Something went wrong. Try again later.")
 
     @strawberry.field
-    def verify_dob(self, dob: date, info: Info ) -> VerificationResponse:
+    def verify_dob(self, dob: str, info: Info ) -> VerificationResponse:
         """
         Verifies a doctor's date of birth using the provided token.
 
         Args:
-            dob (datetime): The date of birth to verify.
+            dob (str): The date of birth to verify.
             info (Info): GraphQL request context containing headers.
 
         Returns:
             VerificationResponse: Response indicating whether the DOB is valid.
         """
         try:
+            # Try parsing and validating the date using Pydantic
+            try:
+                date_adapter = TypeAdapter(date)
+                date_adapter.validate_python(dob)
+            except ValidationError as e:
+                # Return a custom error message when date is invalid
+                custom_message = f"Invalid date format: '{dob}'. Please use YYYY-MM-DD format."
+                return VerificationResponse(success=False, message=custom_message)
+        
             request: Request = info.context["request"]
             headers = request.headers
-
+            
             # Extract token from headers
             token = headers.get("authorization")
             if not token:
@@ -170,7 +180,7 @@ class Query:
                     raise HTTPException(status_code=401, detail="Token does not match.")
             else:
                 raise HTTPException(status_code=401, detail="Token does not match.")
-            
+
             # date-of-birth verification logic
             if get_dob(dob):
                 r.set(auth_token["id"], 3, ex=None)
@@ -178,7 +188,7 @@ class Query:
                     success=True, message="Valid dob",
                     body=Body(id=auth_token["id"], step=3)
                 )
-            return VerificationResponse(success=False, message="Invalid dob.")
+            return VerificationResponse(success=False, message="No matching dob found.")
         except ValueError:
             return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
         except HTTPException as e:

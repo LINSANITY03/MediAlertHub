@@ -16,8 +16,9 @@ client = TestClient(app)
 
 
 DOCTOR_ID = "dd0804db-35d4-4965-a7a2-ce6d3ffc2e7e"
+DOB = "1990-05-12"
 TOKEN = {
-        "id": "dd0804db-35d4-4965-a7a2-ce6d3ffc2e7e",
+        "id": DOCTOR_ID,
         "step": 1
 }
 
@@ -285,5 +286,141 @@ def test_verify_valid_step(mock_get):
     )
     assert response.status_code == 200
     response_data = response.json()["data"]["verifyUsername"]
+    assert response_data["success"] is False
+    assert response_data["message"] == "Token does not match."
+
+@patch("verification_service.main.r.get", return_value="2")
+@patch("verification_service.main.r.set")
+def test_verify_dob_valid(mock_get, mock_set):
+    query = f"""
+    query {{
+        verifyDob(dob: "{DOB}") {{
+            success
+            message
+            body {{
+                id
+                step
+            }}
+        }}
+    }}
+    """
+
+    TOKEN2 = {
+        "id": DOCTOR_ID,
+        "step": 2
+    }
+    HEADERS = {
+    "authorization": json.dumps(TOKEN2)
+    }
+
+    response = client.post(
+        "/graphql", json={"query": query}, headers=HEADERS
+    )
+    assert response.status_code == 200
+    response_data = response.json()["data"]["verifyDob"]
+    print("response data", response_data)
+    assert response_data["success"] is True
+    assert response_data["message"] == "Valid dob"
+    assert response_data["body"]["id"] == DOCTOR_ID
+    assert response_data["body"]["step"] == 3
+
+@patch("verification_service.main.r.get", return_value="2")
+@patch("verification_service.main.r.set")
+def test_verify_dob_invalid(mock_get, mock_set):
+    dob = "1990-12-05"
+
+    query = f"""
+    query {{
+        verifyDob(dob: "{dob}") {{
+            success
+            message
+            body {{
+                id
+                step
+            }}
+        }}
+    }}
+    """
+
+    TOKEN2 = {
+        "id": DOCTOR_ID,
+        "step": 2
+    }
+    HEADERS = {
+    "authorization": json.dumps(TOKEN2)
+    }
+
+    response = client.post(
+        "/graphql", json={"query": query}, headers=HEADERS
+    )
+    assert response.status_code == 200
+    response_data = response.json()["data"]["verifyDob"]
+    assert response_data["success"] is False
+    assert response_data["message"] == "No matching dob found."
+
+@patch("verification_service.main.r.get", return_value="2")
+@patch("verification_service.main.r.set")
+def test_verify_dob_invalid_format(mock_get, mock_set):
+    dob = "1990-march-2nd"
+
+    query = f"""
+    query {{
+        verifyDob(dob: "{dob}") {{
+            success
+            message
+            body {{
+                id
+                step
+            }}
+        }}
+    }}
+    """
+
+    TOKEN2 = {
+        "id": DOCTOR_ID,
+        "step": 2
+    }
+    HEADERS = {
+    "authorization": json.dumps(TOKEN2)
+    }
+
+    response = client.post(
+        "/graphql", json={"query": query}, headers=HEADERS
+    )
+    assert response.status_code == 200
+    response_data = response.json()["data"]["verifyDob"]
+    assert response_data["success"] is False
+    assert response_data["message"] == f"Invalid date format: '{dob}'. Please use YYYY-MM-DD format."
+
+@patch("verification_service.main.r.get", return_value="1")
+@patch("verification_service.main.r.set")
+def test_verify_dob_step(mock_get, mock_set):
+    query = f"""
+    query {{
+        verifyDob(dob: "{DOB}") {{
+            success
+            message
+            body {{
+                id
+                step
+            }}
+        }}
+    }}
+    """
+
+    TOKEN2 = {
+        "id": DOCTOR_ID,
+        "step": 2
+    }
+    HEADERS = {
+    "authorization": json.dumps(TOKEN2)
+    }
+
+    response = client.post(
+        "/graphql", json={"query": query}, headers=HEADERS
+    )
+    assert response.status_code == 200
+    response_data = response.json()["data"]["verifyDob"]
+    print("response data", response_data)
     assert response_data["success"] is False
     assert response_data["message"] == "Token does not match."
