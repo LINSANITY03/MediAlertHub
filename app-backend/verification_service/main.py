@@ -3,16 +3,16 @@
 import json
 import uuid
 from datetime import date
-from pydantic import TypeAdapter, ValidationError
 
 import redis
 import strawberry
 from fastapi import FastAPI, HTTPException, Request
+from pydantic import TypeAdapter, ValidationError
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 
-from .database import get_dob, get_id, get_username
+from database import get_dob, get_id, get_username
 
 app = FastAPI()
 app.add_middleware(
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
 )
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+r = redis.Redis(host="redis", port=6379, decode_responses=True)
 
 @strawberry.type
 class Body:
@@ -74,7 +74,8 @@ class Query:
             return VerificationResponse(success=False, message="Invalid Doctor ID.")
         except ValueError:
             return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
-        except Exception:
+        except Exception as e:
+            print("------------", e)
             return VerificationResponse(success=False,
                                         message="Something went wrong. Try again later.")
 
@@ -155,14 +156,14 @@ class Query:
             try:
                 date_adapter = TypeAdapter(date)
                 date_adapter.validate_python(dob)
-            except ValidationError as e:
+            except ValidationError:
                 # Return a custom error message when date is invalid
                 custom_message = f"Invalid date format: '{dob}'. Please use YYYY-MM-DD format."
                 return VerificationResponse(success=False, message=custom_message)
-        
+
             request: Request = info.context["request"]
             headers = request.headers
-            
+    
             # Extract token from headers
             token = headers.get("authorization")
             if not token:

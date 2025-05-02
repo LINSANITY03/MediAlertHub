@@ -305,16 +305,16 @@ def test_verify_dob_valid(mock_get, mock_set):
     }}
     """
 
-    TOKEN2 = {
+    token2 = {
         "id": DOCTOR_ID,
         "step": 2
     }
-    HEADERS = {
-    "authorization": json.dumps(TOKEN2)
+    headers = {
+    "authorization": json.dumps(token2)
     }
 
     response = client.post(
-        "/graphql", json={"query": query}, headers=HEADERS
+        "/graphql", json={"query": query}, headers=headers
     )
     assert response.status_code == 200
     response_data = response.json()["data"]["verifyDob"]
@@ -342,16 +342,16 @@ def test_verify_dob_invalid(mock_get, mock_set):
     }}
     """
 
-    TOKEN2 = {
+    token2 = {
         "id": DOCTOR_ID,
         "step": 2
     }
-    HEADERS = {
-    "authorization": json.dumps(TOKEN2)
+    headers = {
+    "authorization": json.dumps(token2)
     }
 
     response = client.post(
-        "/graphql", json={"query": query}, headers=HEADERS
+        "/graphql", json={"query": query}, headers=headers
     )
     assert response.status_code == 200
     response_data = response.json()["data"]["verifyDob"]
@@ -376,16 +376,16 @@ def test_verify_dob_invalid_format(mock_get, mock_set):
     }}
     """
 
-    TOKEN2 = {
+    token2 = {
         "id": DOCTOR_ID,
         "step": 2
     }
-    HEADERS = {
-    "authorization": json.dumps(TOKEN2)
+    headers = {
+    "authorization": json.dumps(token2)
     }
 
     response = client.post(
-        "/graphql", json={"query": query}, headers=HEADERS
+        "/graphql", json={"query": query}, headers=headers
     )
     assert response.status_code == 200
     response_data = response.json()["data"]["verifyDob"]
@@ -408,16 +408,16 @@ def test_verify_dob_step(mock_get, mock_set):
     }}
     """
 
-    TOKEN2 = {
+    token2 = {
         "id": DOCTOR_ID,
         "step": 2
     }
-    HEADERS = {
-    "authorization": json.dumps(TOKEN2)
+    headers = {
+    "authorization": json.dumps(token2)
     }
 
     response = client.post(
-        "/graphql", json={"query": query}, headers=HEADERS
+        "/graphql", json={"query": query}, headers=headers
     )
     assert response.status_code == 200
     response_data = response.json()["data"]["verifyDob"]

@@ -1,7 +1,7 @@
 """SQLAlchemy model for User entity used in doctor verification."""
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, String, DATE
+from sqlalchemy import DATE, Column, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 

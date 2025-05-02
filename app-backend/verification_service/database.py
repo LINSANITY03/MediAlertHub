@@ -1,12 +1,17 @@
 """Database setup and utility functions for doctor verification."""
+import os
 from datetime import datetime
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .model import User
+from model import User
 
-engine = create_engine('postgresql+psycopg2://postgres:postgresql@localhost:5432/doctors_db')
+load_dotenv()
+
+db_url = os.getenv("DATABASE_URL")
+engine = create_engine(db_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():

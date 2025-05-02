@@ -27,7 +27,7 @@ query MyQuery($f_name: String!, $l_name: String!) {
 `;
 
 export const CHECK_DOB = gql`
-query MyQuery($dob: Date!){
+query MyQuery($dob: String!){
     verifyDob(dob: $dob) {
         message
         success
