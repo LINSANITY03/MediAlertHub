@@ -8,7 +8,6 @@ const httpLink = new HttpLink({
 
 // function to add localstorage item to headers
 const verifLink = setContext((_, { headers, needsAuth }) => {
-    console.log("needsAuth", needsAuth);
 
     // Only proceed if we're on the client-side
     if (typeof window === 'undefined' || !needsAuth) {
@@ -16,7 +15,6 @@ const verifLink = setContext((_, { headers, needsAuth }) => {
     }
 
     const token = localStorage.getItem("all-cache");
-    console.log("current token", token)
 
     return {
         headers: {

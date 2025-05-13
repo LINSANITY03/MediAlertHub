@@ -10,6 +10,7 @@ import province from "@/components/Province_list";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image"; 
 
 // Dynamically load the Map component and disable SSR
 const MapSelector = dynamic(() => import("@/components/MapSelect"), {
@@ -32,7 +33,13 @@ export default function FormView() {
   );
   const [selectedprovince, setSelectedProvince] = useState<string>("");
 
-  console.log(selectedprovince)
+  // state for inputs
+  const [ageIdentity, setAgeIdentity] = useState(1);
+  const [accompIdent, setAccompIdent] = useState("");
+  const [statusDisease, setStatusDisease] = useState("");
+  const [statusCondition, setStatusCondition] = useState("");
+  const [statusSymptom, setstatusSympton] = useState("");
+
   // Filter states based on the selected country
   const filteredDistrict = district.filter(
     (state) => state.province === selectedprovince
@@ -138,14 +145,20 @@ export default function FormView() {
             </p>
           </label>
 
-          <textarea
-            className="border border-black mx-3 p-3"
-            name="patient-documents"
-            id="f_2_q_4"
-            cols={50}
-            rows={5}
-            required
-          />
+          <div className="flex flex-col items-center justify-center bg-green-200 w-full p-6 rounded-2xl border-2 border-dashed text-center shadow-md mt-5">
+            <input name="patient-documents" id="f_2_q_4" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.svg" 
+            className="hidden"/>
+            <label htmlFor="f_2_q_4">
+            <Image
+              src="/Upload.svg"
+              width={85}
+              height={79}
+              alt="Upload files"
+              className=""
+            />
+          </label>
+          <span>Upload Documents</span>
+          </div>
         </div>
 
         {/* form3 */}
