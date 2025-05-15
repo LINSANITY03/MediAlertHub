@@ -277,6 +277,17 @@ export default function FormView() {
             />
           </label>
           <span>Upload Documents</span>
+
+          {/* Show uploaded file list */}
+          {formData.files && (
+            <ul className="mt-4 w-full text-left text-sm">
+              {Array.from(formData.files).map((file, index) => (
+                <li key={index} className="mb-1">
+                  📄 {file.name} — {(file.size / (1024 * 1024)).toFixed(2)} MB
+                </li>
+              ))}
+            </ul>
+          )}
           </div>
         </div>
 
