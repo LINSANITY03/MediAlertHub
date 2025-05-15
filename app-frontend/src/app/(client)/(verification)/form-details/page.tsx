@@ -84,6 +84,14 @@ export default function FormView() {
    * @param {React.ChangeEvent<HTMLInputElement>} e
    */
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    const maxFiles = 3;
+
+    if (files && files.length > maxFiles) {
+      toast.warning(`You can only upload up to ${maxFiles} files.`);
+      e.target.value = ""; // Clear the selection
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       files: e.target.files
@@ -276,7 +284,7 @@ export default function FormView() {
               className=""
             />
           </label>
-          <span>Upload Documents</span>
+          <span>Upload Max 3 Files pdf,doc,docx,jpg,jpeg,png,svg</span>
 
           {/* Show uploaded file list */}
           {formData.files && (
