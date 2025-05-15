@@ -11,6 +11,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image"; 
+import { toast } from "react-toastify";
 
 // Dynamically load the Map component and disable SSR
 const MapSelector = dynamic(() => import("@/components/MapSelect"), {
@@ -22,40 +23,112 @@ interface Position {
   lng: number;
 }
 
-export default function FormView() {
-  useEffect(() => {
-    document.title = "Complete the form";
-  }, []);
+interface formDataType {
+  ageIdentity: number;
+  accompIdent: string;
+  statusDisease: string;
+  statusCondition: string;
+  statusSymptom: string;
+  files: FileList | null;
+  province: string;
+  district: string;
+}
 
+export default function FormView() {
+  
   const myDefaultPosition: Position = { lat: 27.658354, lng: 85.325065 }; // Satdobato
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null
   );
-  const [selectedprovince, setSelectedProvince] = useState<string>("");
+  const router = useRouter();
+  
+  const [formData, setFormData] = useState<formDataType>({
+    ageIdentity: 1,
+    accompIdent: "",
+    statusDisease: "",
+    statusCondition: "",
+    statusSymptom: "",
+    files: null,
+    province: "",
+    district: ""
+  });
 
-  // state for inputs
-  const [ageIdentity, setAgeIdentity] = useState(1);
-  const [accompIdent, setAccompIdent] = useState("");
-  const [statusDisease, setStatusDisease] = useState("");
-  const [statusCondition, setStatusCondition] = useState("");
-  const [statusSymptom, setstatusSympton] = useState("");
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  };
 
-  // Filter states based on the selected country
-  const filteredDistrict = district.filter(
-    (state) => state.province === selectedprovince
-  );
-
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      files: e.target.files
+    }));
+  };
+  
   const handlePositionSelect = (position: Position) => {
     setSelectedPosition(position);
     console.log("Selected Position:", position);
   };
-  const router = useRouter();
+
+  console.log(formData)
+
+  // Filter states based on the selected country
+  const filteredDistrict = district.filter(
+    (state) => state.province === formData.province
+  );
+  
+  useEffect(() => {
+    document.title = "Complete the form";
+  }, []);
+  
   async function onSubmit(event: FormEvent<HTMLFormElement>){
     event.preventDefault();
-    router.push('/form-preview')
 
+    const fd = new FormData();
+    fd.append("age_identity", formData.ageIdentity.toString());
+    fd.append("accomp_ident", formData.accompIdent);
+    fd.append("status_disease", formData.statusDisease);
+    fd.append("status_condition", formData.statusCondition);
+    fd.append("status_symptom", formData.statusSymptom);
+    fd.append("province", formData.province);
+    fd.append("district", formData.district);
+    fd.append("position", selectedPosition ? JSON.stringify(selectedPosition) : "null");
+
+    if (formData.files) {
+      Array.from(formData.files).forEach((file) => {
+        fd.append("files", file);
+      });
+    }
+    const token = localStorage.getItem("all-cache");
+    try {
+      const res = await fetch("http://localhost:8001", {
+        method: "POST",
+        headers: {
+          "Authorization": `${token}`
+        },
+        body: fd, // FormData or JSON.stringify(data)
+      });
+      
+      if (!res.ok) {
+        console.warn('Request failed:', res.statusText);
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Request failed');
+      }
+      const data = await res.json();
+      router.push(`/form-preview?session=${data.form_id}`);
+
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.error('An unknown error occurred.');
+      }
+    }
   }
-
+  
   return (
     <div className="p-20 ml-20">
       <Link href={"/date-of-birth"}>
@@ -69,16 +142,20 @@ export default function FormView() {
           <label htmlFor="f_1_q_1">
             <p className="text-xl">1. Patient age</p>
           </label>
-          <input
-            className="border border-black mx-3 p-3"
-            type="number"
-            name="patient-age"
-            id="f_1_q_1"
-            max={120}
-            min={1}
-            defaultValue={1}
-            required
-          />
+          <select name="ageIdentity" id="f_1_q_1" className="border border-black mx-3 p-3"
+          value={formData.ageIdentity} onChange={handleInputChange}>
+            <option value={1}>1-5</option>
+            <option value={2}>6-12</option>
+            <option value={3}>13-18</option>
+            <option value={4}>19-25</option>
+            <option value={5}>26-35</option>
+            <option value={6}>36-45</option>
+            <option value={7}>46-60</option>
+            <option value={8}>61-72</option>
+            <option value={9}>73-89</option>
+            <option value={10}>90-100</option>
+            <option value={11}>100+</option>
+          </select>
           <label htmlFor="">
             <p className="text-xl">
               2. Does the patient accompanied by anyone?
@@ -87,8 +164,10 @@ export default function FormView() {
 
           <textarea
             className="border border-black mx-3 p-3"
-            name="patient-accompany"
+            name="accompIdent"
             id="f_1_q_2"
+            value={formData.accompIdent}
+            onChange={handleInputChange}
             cols={50}
             rows={5}
             required
@@ -108,8 +187,10 @@ export default function FormView() {
 
           <textarea
             className="border border-black mx-3 p-3"
-            name="patient-status"
+            name="statusDisease"
             id="f_2_q_1"
+            value={formData.statusDisease}
+            onChange={handleInputChange}
             cols={50}
             rows={5}
             required
@@ -119,8 +200,10 @@ export default function FormView() {
           </label>
           <textarea
             className="border border-black mx-3 p-3"
-            name="patient-condition"
+            name="statusCondition"
             id="f_2_q_2"
+            value={formData.statusCondition}
+            onChange={handleInputChange}
             cols={50}
             rows={5}
             required
@@ -133,8 +216,10 @@ export default function FormView() {
 
           <textarea
             className="border border-black mx-3 p-3"
-            name="patient-symptoms"
+            name="statusSymptom"
             id="f_2_q_3"
+            value={formData.statusSymptom}
+            onChange={handleInputChange}
             cols={50}
             rows={5}
             required
@@ -147,7 +232,7 @@ export default function FormView() {
 
           <div className="flex flex-col items-center justify-center bg-green-200 w-full p-6 rounded-2xl border-2 border-dashed text-center shadow-md mt-5">
             <input name="patient-documents" id="f_2_q_4" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.svg" 
-            className="hidden"/>
+            className="hidden" onChange={handleFilesChange}/>
             <label htmlFor="f_2_q_4">
             <Image
               src="/Upload.svg"
@@ -171,8 +256,9 @@ export default function FormView() {
           <select
             className="border border-black mx-3 p-3"
             name="province"
+            value={formData.province}
             id="f_3_q_1"
-            onChange={(e) => setSelectedProvince(e.target.value)}
+            onChange={handleInputChange}
             required
           >
             <option value="">Select a Province</option> {/* Optional default option */}
@@ -188,7 +274,7 @@ export default function FormView() {
             })}
           </select>
 
-          {selectedprovince && (
+          {formData.province && (
             <>
               <label htmlFor="f_3_q_2">
                 <p className="text-xl">2. District</p>
@@ -196,6 +282,8 @@ export default function FormView() {
               <select
                 className="border border-black mx-3 p-3"
                 name="district"
+                value={formData.district}
+                onChange={handleInputChange}
                 id="f_3_q_2"
                 required
               >
