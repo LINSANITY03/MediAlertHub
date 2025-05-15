@@ -1,5 +1,13 @@
 services:
-
+  restapi:
+    container_name: restapi
+    build: 
+      context: ./form_submission
+    ports:
+      - 8001:8001
+    volumes:
+      - restapi_data:/uploaded_files
+      
   graphql:
     container_name: graphql
     build: 
@@ -35,4 +43,5 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  restapi_data:
       

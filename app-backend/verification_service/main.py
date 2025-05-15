@@ -74,8 +74,7 @@ class Query:
             return VerificationResponse(success=False, message="Invalid Doctor ID.")
         except ValueError:
             return VerificationResponse(success=False, message="Doctor ID is not a valid UUID.")
-        except Exception as e:
-            print("------------", e)
+        except Exception:
             return VerificationResponse(success=False,
                                         message="Something went wrong. Try again later.")
 
