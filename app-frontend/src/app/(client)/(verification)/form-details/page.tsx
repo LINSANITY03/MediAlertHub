@@ -18,11 +18,17 @@ const MapSelector = dynamic(() => import("@/components/MapSelect"), {
   ssr: false, // Disable SSR for this component
 });
 
+/**
+ * Represents a geographical position with latitude and longitude.
+ */
 interface Position {
   lat: number;
   lng: number;
 }
 
+/**
+ * Represents the structure of the form data.
+ */
 interface formDataType {
   ageIdentity: number;
   accompIdent: string;
@@ -34,6 +40,12 @@ interface formDataType {
   district: string;
 }
 
+/**
+ * Main form view component for submitting patient details.
+ * Handles input changes, file uploads, location selection, and form submission.
+ *
+ * @returns {JSX.Element} The form UI.
+ */
 export default function FormView() {
   
   const myDefaultPosition: Position = { lat: 27.658354, lng: 85.325065 }; // Satdobato
@@ -53,6 +65,11 @@ export default function FormView() {
     district: ""
   });
 
+  /**
+   * Handles text, select, and textarea input changes.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>} e
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -61,6 +78,11 @@ export default function FormView() {
     }))
   };
 
+  /**
+   * Handles file input changes.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
@@ -68,22 +90,35 @@ export default function FormView() {
     }));
   };
   
+  /**
+   * Updates the selected map position.
+   *
+   * @param {Position} position
+   */
   const handlePositionSelect = (position: Position) => {
     setSelectedPosition(position);
     console.log("Selected Position:", position);
   };
 
-  console.log(formData)
-
-  // Filter states based on the selected country
+  /**
+   * Filter states based on the selected country
+   */
   const filteredDistrict = district.filter(
     (state) => state.province === formData.province
   );
   
+  /**
+   * Sets the document title when the component mounts.
+   */
   useEffect(() => {
     document.title = "Complete the form";
   }, []);
   
+  /**
+   * Handles form submission: builds form data, sends request, handles response.
+   *
+   * @param {FormEvent<HTMLFormElement>} event
+   */
   async function onSubmit(event: FormEvent<HTMLFormElement>){
     event.preventDefault();
 
@@ -113,7 +148,6 @@ export default function FormView() {
       });
       
       if (!res.ok) {
-        console.warn('Request failed:', res.statusText);
         const errorData = await res.json();
         throw new Error(errorData.message || 'Request failed');
       }
