@@ -4,20 +4,50 @@ import BackLink from "@/components/BackButton";
 import Continue_btn from "@/components/ContinueButton";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect } from "react";
+import { toast } from "react-toastify";
 
 // Dynamically load the Map component and disable SSR
 const MapPreviwer = dynamic(() => import("@/components/MapPreview"), {
     ssr: false, // Disable SSR for this component
 });
 
-export default function FormPreview() {
-  useEffect(() => {
-    document.title = "Preview";
-  }, []);
+async function fetchData(session: string | null){
+  const token = localStorage.getItem("all-cache");
+  try {
+    const res = await fetch(`http://localhost:8001/${session}`, {
+      method: "GET",
+        headers: {
+          "Authorization": `${token}`
+        },
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Request failed');
+    }
+    const data = await res.json();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      toast.error(`Error: ${error.message}`);
+    } else {
+      toast.error('An unknown error occurred.');
+    }
+}};
 
+export default function FormPreview() {
+  const searchParams = useSearchParams();
+  const session = searchParams.get("session");
   const router = useRouter();
+
+  useEffect(() => {
+    if (!session) return;
+    document.title = "Preview";
+    
+    fetchData(session);
+    
+  }, [session]);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>){
     event.preventDefault();
     router.push('/');
