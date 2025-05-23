@@ -5,8 +5,13 @@ services:
       context: ./form_submission
     ports:
       - 8001:8001
+    depends_on:
+      - redis
     volumes:
+      - ./form_submission:/form_submission
       - restapi_data:/uploaded_files
+    working_dir: /form_submission
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
       
   graphql:
     container_name: graphql

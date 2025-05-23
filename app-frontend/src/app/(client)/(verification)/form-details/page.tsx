@@ -160,7 +160,11 @@ export default function FormView() {
         throw new Error(errorData.message || 'Request failed');
       }
       const data = await res.json();
-      router.push(`/form-preview?session=${data.form_id}`);
+      if (data.success === true){
+        router.push(`/form-preview?session=${data.form_id}`);
+      } else {
+        toast.error(data.details)
+      }
 
     } catch (error: unknown) {
       if (error instanceof Error) {
