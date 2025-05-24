@@ -95,7 +95,6 @@ async def user_form(
     try:
         # Parse JSON token and validate UUID
         auth_token = json.loads(token)
-        print("headers token", auth_token)
         uuid.UUID(auth_token["id"])
 
         # Redis cache check

@@ -5,8 +5,8 @@ import io
 
 from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
-from form_submission.main import app
-from form_submission.routes import get_redis
+from main import app
+from routes import get_redis
 
 DOCTOR_ID = "dd0804db-35d4-4965-a7a2-ce6d3ffc2e7e"
 TOKEN = {
@@ -38,12 +38,12 @@ FILES = [
     ("files", ("example.txt", io.BytesIO(FILE_CONTENT), "text/plain"))
 ]
 
-
 def test_user_form_submission():
     """
     Test form submission endpoint with mocked Redis dependency.
     Verifies successful submission when Redis returns a matching token step.
     """
+
     # Mock the Redis client methods here
     mock_redis = MagicMock()
 
@@ -54,8 +54,8 @@ def test_user_form_submission():
 
     # Override the FastAPI dependency
     app.dependency_overrides[get_redis] = lambda: mock_redis
-
     client = TestClient(app)
+
     response = client.post(
         "/", data=DATA, headers=HEADERS
     )
@@ -69,3 +69,32 @@ def test_user_form_submission():
 
     # Clean up override
     app.dependency_overrides = {}
+
+def test_missing_headers():
+    """
+    Test that the form submission endpoint returns 401 when authorization headers are missing.
+    """
+    
+    # Mock the Redis client methods here
+    mock_redis = MagicMock()
+
+    mock_redis.set.return_value = True
+    mock_redis.get.return_value = "3"  # simulate fetched from Redis
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+
+    client = TestClient(app)
+    response = client.post(
+        "/", data=DATA, headers={}
+    )
+
+    assert response.status_code == 401
+    response_data = response.json()
+
+    # Verify the mocked methods were called
+    assert response_data["detail"] == "Missing Authorization header"
+
+    # Clean up override
+    app.dependency_overrides = {}
+
