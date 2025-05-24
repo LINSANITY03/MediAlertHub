@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 Dockerfile
 __pycache__
+uploaded_files

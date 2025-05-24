@@ -7,8 +7,8 @@ import uuid
 import os
 import redis
 
-from fastapi import APIRouter, File, Form, UploadFile, Request, HTTPException, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, File, Form, UploadFile, Request, HTTPException, Depends, Path
+from pydantic import BaseModel, Field
 
 router = APIRouter(
     prefix="",
@@ -53,6 +53,52 @@ def get_token(request: Request):
     if not auth:
         raise HTTPException(status_code=401, detail="Missing Authorization header")
     return auth
+
+def validate_session_id(session_id: str = Path(...)) -> str:
+    """
+    Validates that the provided session_id string is a valid UUID.
+
+    Args:
+        session_id (str): The session ID from the path, expected to be a valid UUID string.
+
+    Returns:
+        str: The validated UUID string.
+
+    Raises:
+        HTTPException: If the session_id is not a valid UUID format.
+    """
+    try:
+        return str(uuid.UUID(session_id))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid UUID format") from exc
+
+class Position(BaseModel):
+    """
+    Represents a geographical position with latitude and longitude.
+    """
+    lat: float
+    lng: float
+
+class FileInfo(BaseModel):
+    """
+    Contains metadata about a file.
+    """
+    filename: str
+
+class UserForm(BaseModel):
+    """
+    Main user-submitted form data.
+    """
+    id: uuid.UUID = Field(alias="__id")
+    accompIdent: str
+    ageIdentity: int
+    district: str
+    files: list[FileInfo] | None = None
+    position: Position
+    province: str
+    statusCondition: str
+    statusDisease: str
+    statusSymptom: str
 
 @router.post("/",  response_model=ResponseModel)
 async def user_form(
@@ -143,3 +189,34 @@ async def user_form(
     except Exception:
         return ResponseModel(success=False,
                                         detail="Something went wrong. Try again later.")
+
+@router.get("/{session_id}", response_model=UserForm, response_model_exclude={"id"})
+async def get_user_form(
+    session_id: uuid.UUID = Depends(validate_session_id),
+    redis_client = Depends(get_redis),
+    ):
+    """
+    Retrieve the UserForm data associated with the given session ID from Redis.
+
+    Args:
+        session_id (uuid.UUID): The validated session ID passed as a URL path parameter.
+        redis_client: A Redis client instance used to fetch session data.
+
+    Returns:
+        UserForm: A pydantic model populated with session data retrieved from Redis.
+
+    Raises:
+        HTTPException: If the session is not found in Redis.
+    """
+
+    get_form_data = redis_client.get(session_id)
+    if not get_form_data:
+        raise HTTPException(status_code=404, detail="Session not found")
+    data_dict = json.loads(get_form_data)
+
+    # `position` is a JSON string, convert it to dict first
+    if "position" in data_dict and isinstance(data_dict["position"], str):
+        data_dict["position"] = json.loads(data_dict["position"])
+    print("Input data dict keys:", data_dict)
+    form_data = UserForm(**data_dict)
+    return form_data

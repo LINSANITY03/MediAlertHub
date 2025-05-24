@@ -75,7 +75,7 @@ def test_missing_headers():
     """
     Test that the form submission endpoint returns 401 when authorization headers are missing.
     """
-    
+
     # Mock the Redis client methods here
     mock_redis = MagicMock()
 
@@ -112,12 +112,12 @@ def test_invalid_doctor_id():
         "step": 3
     }
 
-    HEADERS = {
+    headers = {
         "authorization": json.dumps(token)
     }
     client = TestClient(app)
     response = client.post(
-        "/", data=DATA, headers=HEADERS
+        "/", data=DATA, headers=headers
     )
 
     assert response.status_code == 200
@@ -141,7 +141,7 @@ def test_invalid_token():
         "step": 2
     }
 
-    HEADERS = {
+    headers = {
         "authorization": json.dumps(token)
     }
     # Mock the Redis client methods here
@@ -155,7 +155,7 @@ def test_invalid_token():
 
     client = TestClient(app)
     response = client.post(
-        "/", data=DATA, headers=HEADERS
+        "/", data=DATA, headers=headers
     )
 
     assert response.status_code == 200
