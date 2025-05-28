@@ -130,7 +130,7 @@ export default function FormView() {
     event.preventDefault();
 
     const fd = new FormData();
-    fd.append("age_identity", formData.ageIdentity.toString());
+    fd.append("age_identity", formData.ageIdentity);
     fd.append("accomp_ident", formData.accompIdent);
     fd.append("status_disease", formData.statusDisease);
     fd.append("status_condition", formData.statusCondition);
