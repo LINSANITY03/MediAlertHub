@@ -113,7 +113,7 @@ class UserForm(BaseModel):
 
 @router.post("/",  response_model=FormSubResponse)
 async def user_form(
-    age_identity: int = Form(...),
+    age_identity: str = Form(...),
     accomp_ident: str = Form(...),
     status_disease: str = Form(...),
     status_condition: str = Form(...),

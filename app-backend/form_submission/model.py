@@ -22,7 +22,7 @@ class FormModel(BaseModel):
     """
     id: uuid.UUID = Field(..., alias="_id")
     accompIdent: str
-    ageIdentity: int
+    ageIdentity: str
     district: str
     files: list[FileInfo] | None = None
     position: Position | None = None
