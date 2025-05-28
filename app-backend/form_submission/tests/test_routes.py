@@ -174,6 +174,25 @@ def test_invalid_token():
 
 # routes("/session=${})
 def redis_get_side_effect(key):
+    """
+    Side effect function to mock Redis `get` behavior based on key input.
+
+    This function simulates Redis responses for specific keys during unit testing.
+    It is used as a side effect for mocking the `redis.get` method.
+
+    Parameters:
+    ----------
+    key : str
+        The Redis key being queried.
+
+    Returns:
+    -------
+    str or None
+        - If the key is DOCTOR_ID, returns the string "3" (indicating step number).
+        - If the key is SESSION, returns a serialized JSON string representing session data.
+        - Otherwise, returns None.
+    """
+
     if key == DOCTOR_ID:  # key for token step check
         return "3"  # or whatever step string you expect
     elif key == SESSION:  # key for session data retrieval
@@ -182,7 +201,14 @@ def redis_get_side_effect(key):
         return None
     
 def test_get_user_form():
+    """
+    Test the GET /<SESSION> endpoint to ensure correct response and Redis interaction.
 
+    This test function mocks the Redis client using MagicMock to simulate the expected
+    behavior of the `get` and `set` methods used within the FastAPI app. It overrides 
+    the `get_redis` dependency to inject the mock and uses the TestClient to simulate 
+    an HTTP GET request to the endpoint.
+    """
     # Mock the Redis client methods here
     mock_redis = MagicMock()
 
@@ -211,6 +237,14 @@ def test_get_user_form():
     app.dependency_overrides = {}
 
 def test_check_valid_session():
+    """
+    Test the /session={hello_world} endpoint with an invalid session UUID format.
+
+    This test simulates an invalid session scenario by mocking the Redis client and 
+    overriding the FastAPI dependency. The mocked Redis client's `get` method uses 
+    `redis_get_side_effect` to simulate specific Redis responses. The goal is to ensure 
+    the endpoint returns a 400 status code and a specific error message for invalid UUIDs.
+    """
 
     # Mock the Redis client methods here
     mock_redis = MagicMock()
@@ -235,6 +269,15 @@ def test_check_valid_session():
     assert response_data["detail"] == "Invalid UUID format"
 
 def test_check_empty_token():
+    """
+    Test the /<SESSION> endpoint for behavior when the Authorization token is missing.
+
+    This test ensures that the endpoint correctly returns a 401 Unauthorized status 
+    when no `Authorization` header is provided in the request. Redis methods are 
+    mocked using `MagicMock`, and FastAPI's `get_redis` dependency is overridden to 
+    inject the mock client.
+    """
+
     # Mock the Redis client methods here
     mock_redis = MagicMock()
 
@@ -256,3 +299,36 @@ def test_check_empty_token():
 
     # Verify the mocked methods were called
     assert response_data["detail"] == "Missing Authorization header"
+
+def test_check_valid_token():
+    """
+    Test the /<SESSION> endpoint with a validly formatted but mismatched token.
+
+    This test verifies that the endpoint returns a proper error response when an 
+    Authorization token is present and properly formatted, but its content does not 
+    match expected values (e.g. token step does not match session step). The Redis 
+    client is mocked to simulate backend behavior without needing a real Redis instance.
+    """
+
+     # Mock the Redis client methods here
+    mock_redis = MagicMock()
+
+    # Let's say your FastAPI app calls something like `redis.set("key", value)`
+    # We can mock the `set` and `get` method of the redis client
+    mock_redis.get.side_effect = redis_get_side_effect 
+    mock_redis.set.return_value = True
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+    client = TestClient(app)
+
+    response = client.get(
+        f"/{SESSION}", headers={"authorization": json.dumps({"id": "dd0804db-35d4-4965-a7a2-ce6d3ffc2e71", "step": 3})}
+    )
+
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Verify the mocked methods were called
+    assert response_data["success"] is False
+    assert response_data["detail"] == "Token does not match."
