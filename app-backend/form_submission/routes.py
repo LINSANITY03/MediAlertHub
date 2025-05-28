@@ -43,6 +43,14 @@ class FormSubResponse(BaseModel):
 
 
 class GetFormResponse(BaseModel):
+    """
+    Data model representing the response of a form retrieval operation.
+
+    Attributes:
+        success (bool): Indicates whether the form retrieval was successful.
+        body (FormModel | None): The form data if retrieval was successful, otherwise None.
+        detail (str): Additional information or error message about the retrieval.
+    """
     success: bool
     body: FormModel | None = None
     detail: str
@@ -235,7 +243,7 @@ async def get_user_form(
                 raise HTTPException(status_code=401, detail="Token does not match.")
         else:
             raise HTTPException(status_code=401, detail="Token does not match.")
-        
+
         get_form_data = redis_client.get(session_id)
 
         if not get_form_data:
@@ -245,7 +253,7 @@ async def get_user_form(
         # `position` is a JSON string, convert it to dict first
         if "position" in data_dict and isinstance(data_dict["position"], str):
             data_dict["position"] = json.loads(data_dict["position"])
-        
+
 
         # Check for duplicate _id
         if form_collection.find_one({"_id": session_id}):
@@ -263,7 +271,7 @@ async def get_user_form(
         form_collection.insert_one(model_dict)
 
         return GetFormResponse(success=True, body=data_dict, detail="Form created.")
-    
+
     except ValueError:
         return GetFormResponse(success=False, detail="Doctor ID is not a valid UUID.")
     except HTTPException as e:
