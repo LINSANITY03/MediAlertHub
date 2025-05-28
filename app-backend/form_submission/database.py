@@ -1,3 +1,10 @@
+"""
+Database connection module.
+
+Initializes a MongoDB client using environment variables for
+connection URL and database name.
+"""
+
 import os
 
 from pymongo import MongoClient
