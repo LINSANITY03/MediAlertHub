@@ -30,7 +30,7 @@ interface Position {
  * Represents the structure of the form data.
  */
 interface formDataType {
-  ageIdentity: number;
+  ageIdentity: string;
   accompIdent: string;
   statusDisease: string;
   statusCondition: string;
@@ -55,7 +55,7 @@ export default function FormView() {
   const router = useRouter();
   
   const [formData, setFormData] = useState<formDataType>({
-    ageIdentity: 1,
+    ageIdentity: "",
     accompIdent: "",
     statusDisease: "",
     statusCondition: "",
@@ -188,18 +188,19 @@ export default function FormView() {
             <p className="text-xl">1. Patient age</p>
           </label>
           <select name="ageIdentity" id="f_1_q_1" className="border border-black mx-3 p-3"
-          value={formData.ageIdentity} onChange={handleInputChange}>
-            <option value={1}>1-5</option>
-            <option value={2}>6-12</option>
-            <option value={3}>13-18</option>
-            <option value={4}>19-25</option>
-            <option value={5}>26-35</option>
-            <option value={6}>36-45</option>
-            <option value={7}>46-60</option>
-            <option value={8}>61-72</option>
-            <option value={9}>73-89</option>
-            <option value={10}>90-100</option>
-            <option value={11}>100+</option>
+          value={formData.ageIdentity} onChange={handleInputChange} required>
+            <option value="">select age-group</option>
+            <option value="1-5">1-5</option>
+            <option value="6-12">6-12</option>
+            <option value="13-18">13-18</option>
+            <option value="19-25">19-25</option>
+            <option value="26-35">26-35</option>
+            <option value="36-45">36-45</option>
+            <option value="46-60">46-60</option>
+            <option value="61-72">61-72</option>
+            <option value="73-89">73-89</option>
+            <option value="90-100">90-100</option>
+            <option value="100+">100+</option>
           </select>
           <label htmlFor="">
             <p className="text-xl">
@@ -343,6 +344,7 @@ export default function FormView() {
                 id="f_3_q_2"
                 required
               >
+                <option value="">Select a District</option> {/* Optional default option */}
                 {filteredDistrict.map((each, index) => {
                   return (
                     <option key={index} value={each.name}>

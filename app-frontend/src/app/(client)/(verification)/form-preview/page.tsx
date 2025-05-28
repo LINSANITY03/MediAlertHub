@@ -33,9 +33,7 @@ async function fetchData(session: string ){
       throw new Error(errorData.message || 'Request failed');
     }
     const data = await res.json();
-    if (data.success === true){
-      router.push('/');
-    } else {
+    if (data.success === false){
       toast.error(data.detail)
     }
   } catch (error: unknown) {
