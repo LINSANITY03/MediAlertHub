@@ -332,3 +332,14 @@ def test_check_valid_token():
     # Verify the mocked methods were called
     assert response_data["success"] is False
     assert response_data["detail"] == "Token does not match."
+
+    response_2 = client.get(
+        f"/{SESSION}", headers={"authorization": json.dumps({"id": DOCTOR_ID, "step": 2})}
+    )
+    assert response_2.status_code == 200
+    response2_data = response_2.json()
+
+    # Verify the mocked methods were called
+    assert response2_data["success"] is False
+    assert response2_data["detail"] == "Token does not match."
+
