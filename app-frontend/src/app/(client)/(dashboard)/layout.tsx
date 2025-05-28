@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "../global.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const robotoSans = Roboto({
   variable: "--font-roboto-sans",
@@ -37,7 +39,10 @@ export default function RootLayout({
       <body
         className={`${robotoSans.variable} antialiased`}
       >
-        <main>{children}</main>
+        <main>
+          {children}
+        </main>
+      <ToastContainer />
       </body>
     </html>
   );

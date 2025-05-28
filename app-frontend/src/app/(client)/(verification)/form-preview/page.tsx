@@ -129,8 +129,33 @@ export default function FormPreview() {
    */
   async function onSubmit(event: FormEvent<HTMLFormElement>){
     event.preventDefault();
-    router.push('/');
-    window.alert("Thank you for adding new entry.");  
+    const token = localStorage.getItem("all-cache");
+    try {
+      const res = await fetch(`http://localhost:8001/${session}`, {
+        method: "POST",
+          headers: {
+            "Authorization": `${token}`
+          },
+          body: JSON.stringify(formData)
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Request failed');
+      }
+      const data = await res.json();
+      if (data.success === true){
+        localStorage.setItem('successMessage', data.detail);
+        router.push('/');
+      }else{
+        toast.error(data.detail);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.error('An unknown error occurred.');
+      }
+    };
   }
 
   return (

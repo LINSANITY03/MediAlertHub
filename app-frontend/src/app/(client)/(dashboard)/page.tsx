@@ -1,5 +1,9 @@
+'use client';
+
 import Image from "next/image";
 import Link from 'next/link';
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 /** 
  * Home component renders the homepage of the E-surveillance application.
@@ -9,6 +13,15 @@ import Link from 'next/link';
  * @returns {JSX.Element} The homepage layout with the logo, title, and services list.
  */
 export default function Home() {
+
+  useEffect(() => {
+    const message = localStorage.getItem('successMessage');
+    if (message) {
+      toast.success(message);
+      localStorage.removeItem('successMessage');
+    }
+  }, []);
+
   return (
     <div className="grid grid-rows-2:3fr 1fr h-screen">
       <div className="p-8 m-12 mb-40">
