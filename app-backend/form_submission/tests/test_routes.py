@@ -310,7 +310,7 @@ def test_check_valid_token():
     client is mocked to simulate backend behavior without needing a real Redis instance.
     """
 
-     # Mock the Redis client methods here
+    # Mock the Redis client methods here
     mock_redis = MagicMock()
 
     # Let's say your FastAPI app calls something like `redis.set("key", value)`
@@ -343,3 +343,41 @@ def test_check_valid_token():
     assert response2_data["success"] is False
     assert response2_data["detail"] == "Token does not match."
 
+def test_session_not_found():
+    """
+    Test the /<SESSION> endpoint when session data is missing in Redis.
+
+    This test verifies the application's behavior when the session key is not found 
+    in Redis, simulating a case where the session data does not exist but the 
+    token step value does. The Redis client is mocked to return a step for `DOCTOR_ID` 
+    and `None` for all other keys (especially the session key).
+    """
+
+    def wrong_redis_key(key):
+        if key == DOCTOR_ID:  
+            return "3"  
+        else:
+            return None
+    
+    # Mock the Redis client methods here
+    mock_redis = MagicMock()
+
+    # Let's say your FastAPI app calls something like `redis.set("key", value)`
+    # We can mock the `set` and `get` method of the redis client
+    mock_redis.get.side_effect = wrong_redis_key 
+    mock_redis.set.return_value = True
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+    client = TestClient(app)
+
+    response = client.get(
+        f"/{SESSION}", headers=HEADERS
+    )
+
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Verify the mocked methods were called
+    assert response_data["success"] is False
+    assert response_data["detail"] == "Session not found"
