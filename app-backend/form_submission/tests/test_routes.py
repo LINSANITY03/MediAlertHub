@@ -2,12 +2,11 @@
 
 import json
 import io
-import uuid
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from main import app
-from routes import get_redis
+from routes import get_redis, get_form_collection
 
 DOCTOR_ID = "dd0804db-35d4-4965-a7a2-ce6d3ffc2e7e"
 TOKEN = {
@@ -381,3 +380,45 @@ def test_session_not_found():
     # Verify the mocked methods were called
     assert response_data["success"] is False
     assert response_data["detail"] == "Session not found"
+
+@patch("form_submission.routes.get_form_collection")
+def test_duplicate_entry(mock_get_form_collection):
+    """
+    Test the /{session_id} endpoint for handling duplicate entries.
+
+    This test mocks Redis and MongoDB collection to simulate
+    a scenario where the MongoDB collection already contains
+    an entry with the given session ID.
+
+    Args:
+        mock_get_form_collection (MagicMock): Mocked MongoDB collection provider.
+    """
+
+    # Mock the Redis client methods here
+    mock_redis = MagicMock()
+    mock_mongo = MagicMock()
+
+    # Let's say your FastAPI app calls something like `redis.set("key", value)`
+    # We can mock the `set` and `get` method of the redis client
+    mock_redis.get.side_effect = redis_get_side_effect
+    mock_redis.set.return_value = True
+
+    mock_mongo.find_one.return_value = {"_id": SESSION}
+    mock_get_form_collection.return_value = mock_mongo
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+    app.dependency_overrides[get_form_collection] = lambda: mock_mongo
+
+    client = TestClient(app)
+
+    response = client.get(
+        f"/{SESSION}", headers=HEADERS
+    )
+
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Verify the mocked methods were called
+    assert response_data["success"] is False
+    assert response_data["detail"] == "Data with this ID already exists"

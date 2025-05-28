@@ -20,6 +20,7 @@ from fastapi import (
 )
 from model import FormModel
 from pydantic import BaseModel, Field
+from pymongo.collection import Collection
 
 router = APIRouter(
     prefix="",
@@ -35,6 +36,15 @@ def get_redis():
         redis.Redis: A Redis client instance with response decoding enabled.
     """
     return redis.Redis(host="redis", port=6379, decode_responses=True)
+
+def get_form_collection() -> Collection:
+    """
+    Return the MongoDB collection for form data.
+
+    Returns:
+        Collection: The MongoDB collection instance used for form data.
+    """
+    return form_collection
 
 class FormSubResponse(BaseModel):
     """
@@ -223,6 +233,7 @@ async def get_user_form(
     token: str = Depends(get_token),
     session_id: uuid.UUID = Depends(validate_session_id),
     redis_client = Depends(get_redis),
+    form_collection: Collection = Depends(get_form_collection)
     ):
     """
     Retrieve the UserForm data associated with the given session ID from Redis.
