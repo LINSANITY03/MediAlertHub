@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context';
 
 // fastapi graphql endpoint
 const httpLink = new HttpLink({
-    uri: "http://0.0.0.0:8000/graphql",
+    uri: "http://localhost:8000/graphql",
 });
 
 // function to add localstorage item to headers

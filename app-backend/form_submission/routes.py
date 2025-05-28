@@ -10,10 +10,15 @@ import redis
 from fastapi import APIRouter, File, Form, UploadFile, Request, HTTPException, Depends, Path
 from pydantic import BaseModel, Field
 
+from database import db
+from model import FormModel
+
 router = APIRouter(
     prefix="",
     tags=["form"]
 )
+
+form_collection = db["form_data"]
 
 def get_redis():
     """Create and return a Redis client connected to the default Redis service.
@@ -23,7 +28,7 @@ def get_redis():
     """
     return redis.Redis(host="redis", port=6379, decode_responses=True)
 
-class ResponseModel(BaseModel):
+class FormSubResponse(BaseModel):
     """
     Response model for form submission endpoint.
 
@@ -34,6 +39,12 @@ class ResponseModel(BaseModel):
     """
     success: bool
     form_id: str | None = None
+    detail: str
+
+
+class GetFormResponse(BaseModel):
+    success: bool
+    body: FormModel | None = None
     detail: str
 
 def get_token(request: Request):
@@ -100,7 +111,7 @@ class UserForm(BaseModel):
     statusDisease: str
     statusSymptom: str
 
-@router.post("/",  response_model=ResponseModel)
+@router.post("/",  response_model=FormSubResponse)
 async def user_form(
     age_identity: int = Form(...),
     accomp_ident: str = Form(...),
@@ -181,17 +192,19 @@ async def user_form(
             "files": saved_files
         }
         redis_client.set(form_id, json.dumps(form_data), ex=None)
-        return ResponseModel(success=True, form_id=form_id, detail="Form drafted.")
+        return FormSubResponse(success=True, form_id=form_id, detail="Form drafted.")
     except ValueError:
-        return ResponseModel(success=False, detail="Doctor ID is not a valid UUID.")
+        return FormSubResponse(success=False, detail="Doctor ID is not a valid UUID.")
     except HTTPException as e:
-        return ResponseModel(success=False, detail=e.detail)
-    except Exception:
-        return ResponseModel(success=False,
+        return FormSubResponse(success=False, detail=e.detail)
+    except Exception as e:
+        print(e)
+        return FormSubResponse(success=False,
                                         detail="Something went wrong. Try again later.")
 
-@router.get("/{session_id}", response_model=UserForm, response_model_exclude={"id"})
+@router.get("/{session_id}", response_model=GetFormResponse)
 async def get_user_form(
+    token: str = Depends(get_token),
     session_id: uuid.UUID = Depends(validate_session_id),
     redis_client = Depends(get_redis),
     ):
@@ -208,15 +221,53 @@ async def get_user_form(
     Raises:
         HTTPException: If the session is not found in Redis.
     """
+    try:
+        # Parse JSON token and validate UUID
+        auth_token = json.loads(token)
+        uuid.UUID(auth_token["id"])
 
-    get_form_data = redis_client.get(session_id)
-    if not get_form_data:
-        raise HTTPException(status_code=404, detail="Session not found")
-    data_dict = json.loads(get_form_data)
+        # Redis cache check
+        cache_id = redis_client.get(auth_token["id"])
+        if cache_id:
+            if str(cache_id) == str(auth_token["step"]):
+                pass # Step matches; proceed
+            else:
+                raise HTTPException(status_code=401, detail="Token does not match.")
+        else:
+            raise HTTPException(status_code=401, detail="Token does not match.")
+        
+        get_form_data = redis_client.get(session_id)
 
-    # `position` is a JSON string, convert it to dict first
-    if "position" in data_dict and isinstance(data_dict["position"], str):
-        data_dict["position"] = json.loads(data_dict["position"])
-    print("Input data dict keys:", data_dict)
-    form_data = UserForm(**data_dict)
-    return form_data
+        if not get_form_data:
+            raise HTTPException(status_code=404, detail="Session not found")
+        data_dict = json.loads(get_form_data)
+
+        # `position` is a JSON string, convert it to dict first
+        if "position" in data_dict and isinstance(data_dict["position"], str):
+            data_dict["position"] = json.loads(data_dict["position"])
+        
+
+        # Check for duplicate _id
+        if form_collection.find_one({"_id": session_id}):
+            raise HTTPException(status_code=400, detail="Data with this ID already exists")
+
+        data_dict["id"] = data_dict.pop("__id", None)
+        model = FormModel(**data_dict)
+        model_dict = model.model_dump()
+
+        # Convert UUID fields to string manually
+        if isinstance(model_dict.get("id"), uuid.UUID):
+            model_dict["id"] = str(model_dict["id"])
+
+        # Add dict to the collection
+        form_collection.insert_one(model_dict)
+
+        return GetFormResponse(success=True, body=data_dict, detail="Form created.")
+    
+    except ValueError:
+        return GetFormResponse(success=False, detail="Doctor ID is not a valid UUID.")
+    except HTTPException as e:
+        return GetFormResponse(success=False, detail=e.detail)
+    except Exception:
+        return GetFormResponse(success=False,
+                                        detail="Something went wrong. Try again later.")

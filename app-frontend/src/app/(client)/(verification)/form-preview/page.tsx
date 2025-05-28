@@ -13,7 +13,13 @@ const MapPreviwer = dynamic(() => import("@/components/MapPreview"), {
     ssr: false, // Disable SSR for this component
 });
 
-async function fetchData(session: string | null){
+export default function FormPreview() {
+  const searchParams = useSearchParams();
+  const session = searchParams.get("session");
+  const router = useRouter();
+
+
+async function fetchData(session: string ){
   const token = localStorage.getItem("all-cache");
   try {
     const res = await fetch(`http://localhost:8001/${session}`, {
@@ -27,22 +33,22 @@ async function fetchData(session: string | null){
       throw new Error(errorData.message || 'Request failed');
     }
     const data = await res.json();
+    if (data.success === true){
+      router.push('/');
+    } else {
+      toast.error(data.detail)
+    }
   } catch (error: unknown) {
     if (error instanceof Error) {
       toast.error(`Error: ${error.message}`);
     } else {
       toast.error('An unknown error occurred.');
     }
-}};
-
-export default function FormPreview() {
-  const searchParams = useSearchParams();
-  const session = searchParams.get("session");
-  const router = useRouter();
+  }};
 
   useEffect(() => {
-    if (!session) return;
     document.title = "Preview";
+    if (!session) return;
     
     fetchData(session);
     

@@ -105,7 +105,6 @@ export default function FormView() {
    */
   const handlePositionSelect = (position: Position) => {
     setSelectedPosition(position);
-    console.log("Selected Position:", position);
   };
 
   /**
@@ -163,7 +162,7 @@ export default function FormView() {
       if (data.success === true){
         router.push(`/form-preview?session=${data.form_id}`);
       } else {
-        toast.error(data.details)
+        toast.error(data.detail)
       }
 
     } catch (error: unknown) {

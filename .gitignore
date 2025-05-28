@@ -5,3 +5,4 @@ __pycache__
 .env
 *versions
 .pytest_cache
+uploaded_files
