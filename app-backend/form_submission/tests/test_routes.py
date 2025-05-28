@@ -211,6 +211,7 @@ def test_get_user_form():
     app.dependency_overrides = {}
 
 def test_check_valid_session():
+
     # Mock the Redis client methods here
     mock_redis = MagicMock()
 
@@ -224,7 +225,7 @@ def test_check_valid_session():
     client = TestClient(app)
 
     response = client.get(
-        f"/hello_world", headers=HEADERS
+        "/hello_world", headers=HEADERS
     )
 
     assert response.status_code == 400
@@ -232,3 +233,26 @@ def test_check_valid_session():
 
     # Verify the mocked methods were called
     assert response_data["detail"] == "Invalid UUID format"
+
+def test_check_empty_token():
+    # Mock the Redis client methods here
+    mock_redis = MagicMock()
+
+    # Let's say your FastAPI app calls something like `redis.set("key", value)`
+    # We can mock the `set` and `get` method of the redis client
+    mock_redis.get.side_effect = redis_get_side_effect 
+    mock_redis.set.return_value = True
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+    client = TestClient(app)
+
+    response = client.get(
+        f"/{SESSION}", headers={}
+    )
+
+    assert response.status_code == 401
+    response_data = response.json()
+
+    # Verify the mocked methods were called
+    assert response_data["detail"] == "Missing Authorization header"
