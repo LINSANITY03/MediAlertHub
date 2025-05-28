@@ -3,15 +3,23 @@ This modules defines the API endpoints for form submission by verified doctors.
 
 """
 import json
-import uuid
 import os
+import uuid
+
 import redis
-
-from fastapi import APIRouter, File, Form, UploadFile, Request, HTTPException, Depends, Path
-from pydantic import BaseModel, Field
-
 from database import db
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Path,
+    Request,
+    UploadFile,
+)
 from model import FormModel
+from pydantic import BaseModel, Field
 
 router = APIRouter(
     prefix="",
