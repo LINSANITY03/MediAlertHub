@@ -19,7 +19,7 @@ HEADERS = {
 }
 
 SESSION = "d0530636-c565-4770-ac3f-79c9cfe019b3"
-SESSION_1 = "d0530636-k123-4770-ac3f-79c9cfe019b3"
+SESSION_1 = "d0530636-c565-4770-ac3f-79c9cfe019c1"
 
 DATA = {
         "age_identity": 4,
@@ -474,3 +474,58 @@ def test_save_user_form(mock_get_form_collection):
 
     # Clean up override
     app.dependency_overrides = {}
+
+@patch("form_submission.routes.get_form_collection")
+def test_post_valid_session(mock_get_form_collection):
+    """
+    Test the POST endpoint with both invalid and valid session formats.
+
+    Ensures that:
+    - A non-UUID session returns a 400 response with appropriate error detail.
+    - A valid UUID session not found in DB returns a 200 response with failure message.
+    """
+
+    # Mock the Redis client methods here
+    mock_redis = MagicMock()
+    mock_mongo = MagicMock()
+
+    # We can mock the `set` and `get` method of the redis client
+    mock_redis.get.side_effect = redis_get_side_effect
+    mock_redis.set.return_value = True
+
+    # Mock MongoDB behavior
+    mock_mongo.find_one.return_value = False
+
+    # Mock the insert_one response with an inserted_id
+    mock_insert_result = MagicMock()
+    mock_insert_result.inserted_id = "123123123"
+    mock_mongo.insert_one.return_value = mock_insert_result
+
+    # Patch the get_form_collection dependency to return the mocked Mongo collection
+    mock_get_form_collection.return_value = mock_mongo
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+    app.dependency_overrides[get_form_collection] = lambda: mock_mongo
+
+    # Create a test client and make the POST request
+    client = TestClient(app)
+    response = client.post(
+        "/asd123", headers=HEADERS
+    )
+    response_1 = client.post(
+        f"/{SESSION_1}", headers=HEADERS
+    )
+
+    assert response.status_code == 400
+
+    response_data = response.json()
+    # Verify the mocked methods were called
+    assert response_data["detail"] == "Invalid UUID format"
+
+    assert response_1.status_code == 200
+
+    response_1_data = response_1.json()
+    # Verify the mocked methods were called
+    assert response_1_data["success"] is False
+    assert response_1_data["detail"] == "Session not found"
