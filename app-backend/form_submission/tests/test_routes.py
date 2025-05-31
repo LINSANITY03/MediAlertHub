@@ -195,11 +195,10 @@ def redis_get_side_effect(key):
 
     if key == DOCTOR_ID:  # key for token step check
         return "3"  # or whatever step string you expect
-    elif key == SESSION:  # key for session data retrieval
+    if key == SESSION:  # key for session data retrieval
         return "{\"__id\": \"d0530636-c565-4770-ac3f-79c9cfe019b3\", \"ageIdentity\": \"36-45\", \"accompIdent\": \"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\", \"statusDisease\": \"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\", \"statusCondition\": \"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\", \"statusSymptom\": \"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\", \"province\": \"Bagmati Province\", \"district\": \"Kathmandu\", \"position\": \"null\", \"files\": []}"
-    else:
-        return None
-    
+    return None
+
 def test_get_user_form():
     """
     Test the GET /<SESSION> endpoint to ensure correct response and Redis interaction.
@@ -214,7 +213,7 @@ def test_get_user_form():
 
     # Let's say your FastAPI app calls something like `redis.set("key", value)`
     # We can mock the `set` and `get` method of the redis client
-    mock_redis.get.side_effect = redis_get_side_effect 
+    mock_redis.get.side_effect = redis_get_side_effect
     mock_redis.set.return_value = True
 
     # Override the FastAPI dependency
@@ -251,7 +250,7 @@ def test_check_valid_session():
 
     # Let's say your FastAPI app calls something like `redis.set("key", value)`
     # We can mock the `set` and `get` method of the redis client
-    mock_redis.get.side_effect = redis_get_side_effect 
+    mock_redis.get.side_effect = redis_get_side_effect
     mock_redis.set.return_value = True
 
     # Override the FastAPI dependency
@@ -283,7 +282,7 @@ def test_check_empty_token():
 
     # Let's say your FastAPI app calls something like `redis.set("key", value)`
     # We can mock the `set` and `get` method of the redis client
-    mock_redis.get.side_effect = redis_get_side_effect 
+    mock_redis.get.side_effect = redis_get_side_effect
     mock_redis.set.return_value = True
 
     # Override the FastAPI dependency
@@ -315,7 +314,7 @@ def test_check_valid_token():
 
     # Let's say your FastAPI app calls something like `redis.set("key", value)`
     # We can mock the `set` and `get` method of the redis client
-    mock_redis.get.side_effect = redis_get_side_effect 
+    mock_redis.get.side_effect = redis_get_side_effect
     mock_redis.set.return_value = True
 
     # Override the FastAPI dependency
@@ -323,7 +322,10 @@ def test_check_valid_token():
     client = TestClient(app)
 
     response = client.get(
-        f"/{SESSION}", headers={"authorization": json.dumps({"id": "dd0804db-35d4-4965-a7a2-ce6d3ffc2e71", "step": 3})}
+        f"/{SESSION}",
+        headers={"authorization":
+                 json.dumps({"id": "dd0804db-35d4-4965-a7a2-ce6d3ffc2e71",
+                             "step": 3})}
     )
 
     assert response.status_code == 200
@@ -354,17 +356,16 @@ def test_session_not_found():
     """
 
     def wrong_redis_key(key):
-        if key == DOCTOR_ID:  
-            return "3"  
-        else:
-            return None
-    
+        if key == DOCTOR_ID:
+            return "3"
+        return None
+
     # Mock the Redis client methods here
     mock_redis = MagicMock()
 
     # Let's say your FastAPI app calls something like `redis.set("key", value)`
     # We can mock the `set` and `get` method of the redis client
-    mock_redis.get.side_effect = wrong_redis_key 
+    mock_redis.get.side_effect = wrong_redis_key
     mock_redis.set.return_value = True
 
     # Override the FastAPI dependency
@@ -423,3 +424,53 @@ def test_duplicate_entry(mock_get_form_collection):
     # Verify the mocked methods were called
     assert response_data["success"] is False
     assert response_data["detail"] == "Data with this ID already exists"
+
+# routes("/session=${}, POST)
+
+@patch("form_submission.routes.get_form_collection")
+def test_save_user_form(mock_get_form_collection):
+    """
+    Test the user form submission endpoint.
+
+    Mocks dependencies on Redis and MongoDB to verify that the form submission
+    returns a success response when valid data is provided.
+    """
+
+    # Mock the Redis client methods here
+    mock_redis = MagicMock()
+    mock_mongo = MagicMock()
+
+    # We can mock the `set` and `get` method of the redis client
+    mock_redis.get.side_effect = redis_get_side_effect
+    mock_redis.set.return_value = True
+
+    # Mock MongoDB behavior
+    mock_mongo.find_one.return_value = False
+
+    # Mock the insert_one response with an inserted_id
+    mock_insert_result = MagicMock()
+    mock_insert_result.inserted_id = "123123123"
+    mock_mongo.insert_one.return_value = mock_insert_result
+
+    # Patch the get_form_collection dependency to return the mocked Mongo collection
+    mock_get_form_collection.return_value = mock_mongo
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+    app.dependency_overrides[get_form_collection] = lambda: mock_mongo
+
+    # Create a test client and make the POST request
+    client = TestClient(app)
+    response = client.post(
+        f"/{SESSION}", headers=HEADERS
+    )
+
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Verify the mocked methods were called
+    assert response_data["success"] is True
+    assert response_data["detail"] == "Data registered."
+
+    # Clean up override
+    app.dependency_overrides = {}
