@@ -279,15 +279,6 @@ async def get_user_form(
             raise HTTPException(status_code=400, detail="Data with this ID already exists")
 
         data_dict["id"] = data_dict.pop("__id", None)
-        model = FormModel(**data_dict)
-        model_dict = model.model_dump()
-
-        # Convert UUID fields to string manually
-        if isinstance(model_dict.get("id"), uuid.UUID):
-            model_dict["id"] = str(model_dict["id"])
-
-        # Add dict to the collection
-        form_collection.insert_one(model_dict)
 
         return GetFormResponse(success=True, body=data_dict, detail="Form created.")
 
@@ -298,3 +289,61 @@ async def get_user_form(
     except Exception:
         return GetFormResponse(success=False,
                                         detail="Something went wrong. Try again later.")
+
+@router.post("/{session_id}", response_model=GetFormResponse)
+async def save_user_form(
+    token: str = Depends(get_token),
+    session_id: uuid.UUID = Depends(validate_session_id),
+    redis_client = Depends(get_redis),
+    form_collection: Collection = Depends(get_form_collection)
+    ):
+    try:
+        # Parse JSON token and validate UUID
+        auth_token = json.loads(token)
+        uuid.UUID(auth_token["id"])
+
+        # Redis cache check
+        cache_id = redis_client.get(auth_token["id"])
+        if cache_id:
+            if str(cache_id) == str(auth_token["step"]):
+                pass # Step matches; proceed
+            else:
+                raise HTTPException(status_code=401, detail="Token does not match.")
+        else:
+            raise HTTPException(status_code=401, detail="Token does not match.")
+
+        get_form_data = redis_client.get(session_id)
+
+        if not get_form_data:
+            raise HTTPException(status_code=404, detail="Session not found")
+        data_dict = json.loads(get_form_data)
+
+        # `position` is a JSON string, convert it to dict first
+        if "position" in data_dict and isinstance(data_dict["position"], str):
+            data_dict["position"] = json.loads(data_dict["position"])
+
+        # Check for duplicate _id
+        if form_collection.find_one({"_id": session_id}):
+            raise HTTPException(status_code=400, detail="Data with this ID already exists")
+
+        data_dict["id"] = data_dict.pop("__id", None)
+        model = FormModel(**data_dict)
+        model_dict = model.model_dump()
+
+        # Convert UUID fields to string manually
+        if isinstance(model_dict.get("id"), uuid.UUID):
+            model_dict["id"] = str(model_dict["id"])
+
+        # Add dict to the collection
+        form_collection.insert_one(model_dict)
+
+        return GetFormResponse(success=True, detail="Data registered.")
+    except ValueError:
+        return GetFormResponse(success=False, detail="Doctor ID is not a valid UUID.")
+    except HTTPException as e:
+        return GetFormResponse(success=False, detail=e.detail)
+    except Exception:
+        return GetFormResponse(success=False,
+                                        detail="Something went wrong. Try again later.")
+
+    

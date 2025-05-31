@@ -19,6 +19,7 @@ HEADERS = {
 }
 
 SESSION = "d0530636-c565-4770-ac3f-79c9cfe019b3"
+SESSION_1 = "d0530636-k123-4770-ac3f-79c9cfe019b3"
 
 DATA = {
         "age_identity": 4,
@@ -171,7 +172,7 @@ def test_invalid_token():
     # Clean up override
     app.dependency_overrides = {}
 
-# routes("/session=${})
+# routes("/session=${}, GET)
 def redis_get_side_effect(key):
     """
     Side effect function to mock Redis `get` behavior based on key input.
