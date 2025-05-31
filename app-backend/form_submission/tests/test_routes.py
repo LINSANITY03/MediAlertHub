@@ -529,3 +529,62 @@ def test_post_valid_session(mock_get_form_collection):
     # Verify the mocked methods were called
     assert response_1_data["success"] is False
     assert response_1_data["detail"] == "Session not found"
+
+@patch("form_submission.routes.get_form_collection")
+def test_post_token(mock_get_form_collection):
+    """
+    Test form submission with missing or invalid Authorization token.
+
+    This test checks:
+    - A request without an Authorization header should return 401.
+    - A request with an Authorization header but mismatched token should return 200 with failure.
+    """
+    # Mock the Redis client methods here
+    mock_redis = MagicMock()
+    mock_mongo = MagicMock()
+
+    # We can mock the `set` and `get` method of the redis client
+    mock_redis.get.side_effect = redis_get_side_effect
+    mock_redis.set.return_value = True
+
+    # Mock MongoDB behavior
+    mock_mongo.find_one.return_value = False
+
+    # Mock the insert_one response with an inserted_id
+    mock_insert_result = MagicMock()
+    mock_insert_result.inserted_id = "123123123"
+    mock_mongo.insert_one.return_value = mock_insert_result
+
+    # Patch the get_form_collection dependency to return the mocked Mongo collection
+    mock_get_form_collection.return_value = mock_mongo
+
+    # Override the FastAPI dependency
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+    app.dependency_overrides[get_form_collection] = lambda: mock_mongo
+
+    # Create a test client and make the POST request
+    client = TestClient(app)
+    response = client.post(
+        f"/{SESSION}", headers={}
+    )
+    response_1 = client.post(
+        f"/{SESSION}", headers={
+            "authorization": json.dumps({
+                    "id": DOCTOR_ID,
+                    "step": 2
+            })
+        }
+    )
+
+    assert response.status_code == 401
+
+    response_data = response.json()
+    # Verify the mocked methods were called
+    assert response_data["detail"] == "Missing Authorization header"
+
+    assert response_1.status_code == 200
+
+    response_1_data = response_1.json()
+    # Verify the mocked methods were called
+    assert response_1_data["success"] is False
+    assert response_1_data["detail"] == "Token does not match."
