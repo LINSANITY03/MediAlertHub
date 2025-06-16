@@ -14,7 +14,7 @@ describe('Continue Button', ()=> {
         render(<Continue_btn/>)
 
         const button = screen.getByRole('button', {name: "continue"});
-        expect(button).toBeInTheDocument;
+        expect(button).toBeInTheDocument();
     });
 
     it('is of type submit', ()=> {
