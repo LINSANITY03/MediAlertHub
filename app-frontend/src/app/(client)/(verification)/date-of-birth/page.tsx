@@ -13,6 +13,8 @@ import { toast } from 'react-toastify';
 /**
  * The Verify component is responsible for verifying the user's date of birth (DOB).
  * It prompts the user to enter their DOB and sends it to the backend for validation.
+ * 
+ * @returns {JSX.Element} The form UI.
  */
 export default function Verify() {
   const router = useRouter();
@@ -48,6 +50,7 @@ export default function Verify() {
    * Prevents the default form behavior and triggers the verification request.
    * 
    * @param {FormEvent<HTMLFormElement>} event - The form submission event.
+   * @returns {Promise<void>} Resolves when the form submission handling is complete.
    */
   async function onSubmit(event: FormEvent<HTMLFormElement>){
     event.preventDefault()
