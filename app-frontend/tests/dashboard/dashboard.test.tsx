@@ -3,6 +3,12 @@ import Home from "@/app/(client)/(dashboard)/page";
 import '@testing-library/jest-dom';
 import { toast } from "react-toastify";
 
+/**
+ * Mock implementation for 'react-toastify' module.
+ * 
+ * This mock replaces the `toast.success` method with a Jest mock function
+ * to allow testing of toast notifications without invoking the real implementation.
+ */
 jest.mock('react-toastify', () => ({
     toast: {
         success: jest.fn(),
