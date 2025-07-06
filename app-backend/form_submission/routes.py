@@ -7,7 +7,6 @@ import os
 import uuid
 
 import redis
-from database import db
 from fastapi import (
     APIRouter,
     Depends,
@@ -18,9 +17,11 @@ from fastapi import (
     Request,
     UploadFile,
 )
-from model import FormModel
 from pydantic import BaseModel, Field
 from pymongo.collection import Collection
+
+from model import FormModel
+from database import db
 
 router = APIRouter(
     prefix="",
