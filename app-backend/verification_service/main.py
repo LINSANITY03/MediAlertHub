@@ -8,10 +8,10 @@ from datetime import date
 import redis
 import strawberry
 from fastapi import FastAPI, HTTPException, Request
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import TypeAdapter, ValidationError
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from starlette.responses import Response
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import Response
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 
@@ -32,6 +32,20 @@ r = redis.Redis(host="redis", port=6379, decode_responses=True)
 
 @app.middleware("http")
 async def prometheus_middleware(request: Request, call_next):
+    """
+    Middleware to collect Prometheus metrics for HTTP requests.
+
+    Tracks:
+    - Request latency in seconds.
+    - Request count by method, path, and status code.
+
+    Args:
+        request (Request): The incoming HTTP request.
+        call_next (Callable): The next middleware or route handler in the chain.
+
+    Returns:
+        Response: The HTTP response after processing.
+    """
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
@@ -43,6 +57,13 @@ async def prometheus_middleware(request: Request, call_next):
 
 @app.get("/metrics")
 async def metrics():
+    """
+    Endpoint to expose Prometheus metrics.
+
+    Returns:
+        Response: A plain-text response containing Prometheus-formatted metrics
+                  with the appropriate media type for scraping.
+    """
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @strawberry.type
@@ -183,7 +204,7 @@ class Query:
 
             request: Request = info.context["request"]
             headers = request.headers
-    
+
             # Extract token from headers
             token = headers.get("authorization")
             if not token:
