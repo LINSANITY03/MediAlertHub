@@ -1,0 +1,26 @@
+{
+  "id": null,
+  "uid": "fastapi-default",
+  "title": "FastAPI Metrics",
+  "tags": ["fastapi"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Request Rate",
+      "targets": [
+        {
+          "expr": "http_requests_total",
+          "interval": "",
+          "legendFormat": "{{handler}} - {{status_code}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 9 }
+    }
+  ],
+  "schemaVersion": 30,
+  "version": 1
+}
+  

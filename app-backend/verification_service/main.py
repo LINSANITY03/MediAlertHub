@@ -1,6 +1,7 @@
 """Main application module defining the GraphQL API for doctor ID verification."""
 
 import json
+import time
 import uuid
 from datetime import date
 
@@ -8,11 +9,16 @@ import redis
 import strawberry
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import TypeAdapter, ValidationError
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from starlette.responses import Response
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 
 from database import get_dob, get_id, get_username
+
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP Requests", ["method", "endpoint", "http_status"])
+REQUEST_LATENCY = Histogram("http_request_duration_seconds", "HTTP request latency", ["method", "endpoint"])
 
 app = FastAPI()
 app.add_middleware(
@@ -23,6 +29,21 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 r = redis.Redis(host="redis", port=6379, decode_responses=True)
+
+@app.middleware("http")
+async def prometheus_middleware(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    REQUEST_LATENCY.labels(request.method, request.url.path).observe(process_time)
+    REQUEST_COUNT.labels(request.method, request.url.path, response.status_code).inc()
+
+    return response
+
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @strawberry.type
 class Body:
