@@ -3,6 +3,7 @@ This modules defines the API endpoints for form submission by verified doctors.
 
 """
 import json
+import logging
 import os
 import uuid
 
@@ -20,8 +21,12 @@ from fastapi import (
 from pydantic import BaseModel, Field
 from pymongo.collection import Collection
 
-from model import FormModel
+from common.logger import setup_logging
 from database import db
+from model import FormModel
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="",
@@ -175,7 +180,7 @@ async def user_form(
     Raises:
         HTTPException: If any validation fails (e.g., missing fields, unauthorized). 
     """
-
+    logger.info("Starting user_form")
     try:
         # Parse JSON token and validate UUID
         auth_token = json.loads(token)
@@ -219,13 +224,16 @@ async def user_form(
             "files": saved_files
         }
         redis_client.set(form_id, json.dumps(form_data), ex=None)
+        logger.info("Form drafted.")
         return FormSubResponse(success=True, form_id=form_id, detail="Form drafted.")
     except ValueError:
+        logger.warning("Invalid DoctorID.")
         return FormSubResponse(success=False, detail="Doctor ID is not a valid UUID.")
     except HTTPException as e:
+        logger.warning("HTTPException in user_form")
         return FormSubResponse(success=False, detail=e.detail)
     except Exception as e:
-        print(e)
+        logger.exception("Error in user_form")
         return FormSubResponse(success=False,
                                         detail="Something went wrong. Try again later.")
 
@@ -249,6 +257,7 @@ async def get_user_form(
     Raises:
         HTTPException: If the session is not found in Redis.
     """
+    logger.info("Starting get_user_form")
     try:
         # Parse JSON token and validate UUID
         auth_token = json.loads(token)
@@ -280,14 +289,17 @@ async def get_user_form(
             raise HTTPException(status_code=400, detail="Data with this ID already exists")
 
         data_dict["id"] = data_dict.pop("__id", None)
-
+        logger.info("Form created.")
         return GetFormResponse(success=True, body=data_dict, detail="Form created.")
 
     except ValueError:
+        logger.warning("INvalid DoctorID.")
         return GetFormResponse(success=False, detail="Doctor ID is not a valid UUID.")
     except HTTPException as e:
+        logger.warning("HTTPException in get_user_form")
         return GetFormResponse(success=False, detail=e.detail)
-    except Exception:
+    except Exception as e:
+        logger.exception("Error in get_user_form")
         return GetFormResponse(success=False,
                                         detail="Something went wrong. Try again later.")
 
@@ -298,6 +310,21 @@ async def save_user_form(
     redis_client = Depends(get_redis),
     form_collection: Collection = Depends(get_form_collection)
     ):
+    """Saves user form data into the database after validating the token and session.
+
+    Args:
+        token (str): A JSON string containing authentication token data. Retrieved via dependency injection.
+        session_id (uuid.UUID): The session identifier, validated via dependency.
+        redis_client (Redis): A Redis client instance for accessing cache. Injected as a dependency.
+        form_collection (Collection): MongoDB collection instance to insert the form into.
+
+    Returns:
+        GetFormResponse: A response model indicating success or failure, with a relevant message.
+
+    Raises:
+        HTTPException: If token is invalid, session is not found, or data already exists.
+    """
+    logger.info("Starting save_user_form")
     try:
         # Parse JSON token and validate UUID
         auth_token = json.loads(token)
@@ -337,13 +364,16 @@ async def save_user_form(
 
         # Add dict to the collection
         form_collection.insert_one(model_dict)
-
+        logger.info("Data registered.")
         return GetFormResponse(success=True, detail="Data registered.")
     except ValueError:
+        logger.warning("Invalid UUID.")
         return GetFormResponse(success=False, detail="Doctor ID is not a valid UUID.")
     except HTTPException as e:
+        logger.warning("HTTPException in save_user_form")
         return GetFormResponse(success=False, detail=e.detail)
     except Exception:
+        logger.exception("Something went wrong. Try again later.")
         return GetFormResponse(success=False,
                                         detail="Something went wrong. Try again later.")
 

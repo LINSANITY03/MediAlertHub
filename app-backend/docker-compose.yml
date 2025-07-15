@@ -2,7 +2,8 @@ services:
   restapi:
     container_name: restapi
     build: 
-      context: ./form_submission
+      context: .
+      dockerfile: form_submission/Dockerfile
     ports:
       - 8001:8001
     depends_on:
@@ -11,9 +12,7 @@ services:
       - mongo-express
       - logstash
     volumes:
-      - ./form_submission:/form_submission
       - restapi_data:/uploaded_files
-    working_dir: /form_submission
     env_file:
       - .env
     command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
