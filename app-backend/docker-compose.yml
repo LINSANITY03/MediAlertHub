@@ -21,7 +21,8 @@ services:
   graphql:
     container_name: graphql
     build: 
-      context: ./verification_service
+      context: .
+      dockerfile: verification_service/Dockerfile
     ports:
       - 8000:8000
     depends_on:

@@ -1,6 +1,5 @@
 """Main application module defining the GraphQL API for doctor ID verification."""
 
-import contextvars
 import json
 import logging
 import time
@@ -20,7 +19,7 @@ from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 
 from database import get_dob, get_id, get_username
-from logger import set_request_id, setup_logging
+from common.logger import set_request_id, setup_logging
 
 REQUEST_COUNT = Counter("http_requests_total", "Total HTTP Requests", ["method", "endpoint", "http_status"])
 REQUEST_LATENCY = Histogram("http_request_duration_seconds", "HTTP request latency", ["method", "endpoint"])

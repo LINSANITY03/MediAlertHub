@@ -4,7 +4,10 @@ FROM python:3.12-slim
 WORKDIR /verification_service
 
 # Copy the content from the local verification_service directory to the container
-COPY . .
+COPY verification_service/ .
+
+# Copy the shared code inside the container
+COPY common/ common/
 
 # Install the required dependencies from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
