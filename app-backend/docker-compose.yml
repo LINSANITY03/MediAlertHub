@@ -9,6 +9,7 @@ services:
       - redis
       - mongo
       - mongo-express
+      - logstash
     volumes:
       - ./form_submission:/form_submission
       - restapi_data:/uploaded_files
@@ -26,6 +27,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - logstash
     environment:
       - DATABASE_URL=${DATABASE_URL}
       
@@ -99,6 +101,32 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
     depends_on:
       - prometheus
+
+  elasticsearch:
+    image: elasticsearch:9.0.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - 9200:9200
+  
+  logstash:
+    image: logstash:9.0.2
+    ports:
+      - 5001:5001
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - elasticsearch
+  
+  kibana:
+    image: kibana:9.0.2
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_URL}
+    depends_on:
+      - elasticsearch
 
 volumes:
   postgres_data:

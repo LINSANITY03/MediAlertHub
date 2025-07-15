@@ -11,6 +11,7 @@ This module defines:
 import logging
 import logging.config
 import contextvars
+import logstash
 
 # Context variable for request ID
 request_id_var = contextvars.ContextVar("request_id", default="-")
@@ -67,13 +68,21 @@ LOGGING_CONFIG = {
             "formatter": "json",
             "level": "INFO",
             "filters": ["request_id"]
-        }
+        },
+        "logstash": {
+            "class": "logstash.TCPLogstashHandler",
+            "host": "app-backend-logstash-1",
+            "port": 5001,
+            "level": "INFO",
+            "filters": ["request_id"]
+        },
     },
 
     "root": {
-        "handlers": ["console"],
+        "handlers": ["console", "logstash"],
         "level": "INFO"
     },
+
 }
 
 # filter basically create an instance of RequestIDFilter, and assign it the name request_id.
