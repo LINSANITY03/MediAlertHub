@@ -128,6 +128,16 @@ services:
     depends_on:
       - elasticsearch
 
+  rabbitmq:
+    image: rabbitmq:3.13.7-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      
 volumes:
   postgres_data:
   redis_data:
