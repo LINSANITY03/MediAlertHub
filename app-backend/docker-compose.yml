@@ -135,9 +135,20 @@ services:
       - 5672:5672
       - 15672:15672
     environment:
-      - RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-      
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+  
+  rag-worker:
+    build: 
+      context: .
+      dockerfile: rag_worker/Dockerfile
+    container_name: rag-worker
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    depends_on:
+      - rabbitmq
+
 volumes:
   postgres_data:
   redis_data:

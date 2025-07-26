@@ -178,7 +178,7 @@ def summarize_patient_data(form_data: dict, llm:Optional[Runnable]=None) -> str:
 
     if llm is None:
         llm = ChatOpenAI(
-            base_url="http://localhost:12434/engines/v1",
+            base_url="http://host.docker.internal:12434/engines/v1", # using docker model runner
             model="ai/smollm2",
             api_key="not-needed"
         )

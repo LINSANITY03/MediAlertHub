@@ -2,27 +2,44 @@
 RabbitMQ worker that listens for tasks and runs the summarize_patient_data function.
 """
 
+import logging
 import json
 import os
 import pika
+import time
 
-from dotenv import load_dotenv
-
+from common.logger import set_request_id, setup_logging
 from rag import summarize_patient_data
 
-load_dotenv("app-backend/.env")
+setup_logging()
+logger = logging.getLogger(__name__)
 
 RABBITMQ_DEFAULT_USER = os.getenv("RABBITMQ_DEFAULT_USER")
 RABBITMQ_DEFAULT_PASS = os.getenv("RABBITMQ_DEFAULT_PASS")
 
-# RabbitMQ setup
-connection = pika.BlockingConnection(
-                pika.ConnectionParameters(
-                    host="rabbitmq",
-                    credentials=pika.PlainCredentials(RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS)
-                ))
-channel = connection.channel()
-channel.queue_declare(queue="rag_tasks", durable=True)
+# Create credentials object
+credentials = pika.PlainCredentials(RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS)
+
+# Retry logic to wait for RabbitMQ to be ready
+for attempt in range(10):
+    try:
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host="rabbitmq",
+                port=5672,
+                credentials=credentials
+            )
+        )
+        channel = connection.channel()
+        channel.queue_declare(queue="rag_tasks", durable=True)
+        print("[*] Connected to RabbitMQ and queue declared.")
+        break
+    except pika.exceptions.AMQPConnectionError:
+        print(f"[!] RabbitMQ not ready. Retrying in 3 seconds... (Attempt {attempt + 1}/10)")
+        time.sleep(3)
+else:
+    raise Exception("Failed to connect to RabbitMQ after 10 attempts.")
+
 
 def callback(ch, method, properties, body):
     """
@@ -50,7 +67,7 @@ def callback(ch, method, properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
     summary = summarize_patient_data(form_data=form_data)
-    print(f" [x] Summary:\n{summary}")
+    logger.info(summary)
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 channel.basic_qos(prefetch_count=1)
