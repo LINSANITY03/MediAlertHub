@@ -53,7 +53,7 @@ Licensed doctors can upload real-time data on recently detected diseases at thei
   - Manages PostgreSQL database (disease reports, user roles)  
   - Ensures ACID compliance and indexing for fast lookups
 
-### 🔹 Extensibility
+### Extensibility
 The architecture is intentionally **extensible**.  
 New services (e.g., ML forecasting, AI dashboards, mobile APIs) can be added as **separate micro-services** that plug into the ecosystem without changing the existing codebase.  
 This keeps the system modular, easier to maintain, and deployable at scale.
@@ -67,7 +67,7 @@ This keeps the system modular, easier to maintain, and deployable at scale.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 1. Clone the repository:
    ```
