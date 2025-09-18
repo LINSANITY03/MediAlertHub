@@ -11,37 +11,46 @@ services:
       - mongo
       - mongo-express
       - logstash
+      - rabbitmq
+      - rag-worker
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     volumes:
       - restapi_data:/uploaded_files
     env_file:
       - .env
-    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
       
-  graphql:
-    container_name: graphql
-    build: 
-      context: .
-      dockerfile: verification_service/Dockerfile
-    ports:
-      - 8000:8000
-    depends_on:
-      - postgres
-      - redis
-      - logstash
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
+  # graphql:
+  #   container_name: graphql
+  #   build: 
+  #     context: .
+  #     dockerfile: verification_service/Dockerfile
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - logstash
+  #     - rabbitmq
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+  #     - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+  #   env_file:
+  #     - .env
       
-  postgres:
-    image: postgres
-    container_name: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgresql
-      POSTGRES_DB: doctors_db
-    ports:
-      - 5432:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # postgres:
+  #   image: postgres
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgresql
+  #     POSTGRES_DB: doctors_db
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
     
   redis:
     image: redis
@@ -86,7 +95,7 @@ services:
       - 9090:9090
     depends_on:
       - restapi
-      - graphql
+      # - graphql
 
   grafana:
     image: grafana/grafana

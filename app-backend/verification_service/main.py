@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import time
 import uuid
 from datetime import date
@@ -18,8 +19,17 @@ from starlette.types import ASGIApp
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 
-from database import get_dob, get_id, get_username
 from common.logger import set_request_id, setup_logging
+from database import get_dob, get_id, get_username
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Read allowed origins and split by comma
+origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+
+# Optional: strip whitespace from each origin
+origins = [origin.strip() for origin in origins if origin.strip()]
 
 REQUEST_COUNT = Counter("http_requests_total", "Total HTTP Requests", ["method", "endpoint", "http_status"])
 REQUEST_LATENCY = Histogram("http_request_duration_seconds", "HTTP request latency", ["method", "endpoint"])
@@ -30,7 +40,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -90,7 +100,6 @@ async def prometheus_middleware(request: Request, call_next):
         Response: The HTTP response after processing.
     """
 
-    logger.info("Incoming request")
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
@@ -98,7 +107,6 @@ async def prometheus_middleware(request: Request, call_next):
     REQUEST_LATENCY.labels(request.method, request.url.path).observe(process_time)
     REQUEST_COUNT.labels(request.method, request.url.path, response.status_code).inc()
 
-    logger.info("Request complete")
     return response
 
 @app.get("/metrics")

@@ -18,11 +18,13 @@ from fastapi import (
     Request,
     UploadFile,
 )
+from typing import Generator
 from pydantic import BaseModel, Field
 from pymongo.collection import Collection
 
 from common.logger import setup_logging
 from database import db
+from helper.send_rag import RabbitMQProducer
 from model import FormModel
 
 setup_logging()
@@ -114,6 +116,14 @@ def validate_session_id(session_id: str = Path(...)) -> str:
         return str(uuid.UUID(session_id))
     except ValueError as exc:
         raise HTTPException(status_code=400, detail="Invalid UUID format") from exc
+
+def get_rabbitmq_producer():
+    logger.info("this is inside get_rabbitproducer")
+    try:
+        return RabbitMQProducer()
+    except Exception as e:
+        logger.error(f"Failed to get RabbitMQProducer: {e}")
+        raise HTTPException(status_code=401, detail="Failed to get RabbitMQProducer")
 
 class Position(BaseModel):
     """
@@ -308,7 +318,8 @@ async def save_user_form(
     token: str = Depends(get_token),
     session_id: uuid.UUID = Depends(validate_session_id),
     redis_client = Depends(get_redis),
-    form_collection: Collection = Depends(get_form_collection)
+    form_collection: Collection = Depends(get_form_collection),
+    rabbitmq_producer: RabbitMQProducer = Depends(get_rabbitmq_producer)
     ):
     """Saves user form data into the database after validating the token and session.
 
@@ -317,12 +328,14 @@ async def save_user_form(
         session_id (uuid.UUID): The session identifier, validated via dependency.
         redis_client (Redis): A Redis client instance for accessing cache. Injected as a dependency.
         form_collection (Collection): MongoDB collection instance to insert the form into.
+        rabbitmq_producer (RabbitMQProducer): Injected RabbitMQ producer instance.
 
     Returns:
         GetFormResponse: A response model indicating success or failure, with a relevant message.
 
     Raises:
-        HTTPException: If token is invalid, session is not found, or data already exists.
+        HTTPException: If token is invalid, session is not found, data already exists or connection
+        issue with rabbitmq.
     """
     logger.info("Starting save_user_form")
     try:
@@ -365,6 +378,13 @@ async def save_user_form(
         # Add dict to the collection
         form_collection.insert_one(model_dict)
         logger.info("Data registered.")
+
+        pop_list = ["id", "files", "position", "created_at"]
+        for each in model_dict:
+            if each in pop_list:
+                model_dict.pop(each)
+        
+        rabbitmq_producer.publish(model_dict)
         return GetFormResponse(success=True, detail="Data registered.")
     except ValueError:
         logger.warning("Invalid UUID.")
@@ -372,9 +392,9 @@ async def save_user_form(
     except HTTPException as e:
         logger.warning("HTTPException in save_user_form")
         return GetFormResponse(success=False, detail=e.detail)
-    except Exception:
+    except Exception as e:
+        print(e)
+        logger.info(e)
         logger.exception("Something went wrong. Try again later.")
         return GetFormResponse(success=False,
                                         detail="Something went wrong. Try again later.")
-
-    
