@@ -18,13 +18,6 @@ Licensed doctors can upload real-time data on recently detected diseases at thei
 
 ---
 
-### Future Features
-
-- Admin dashboard with outbreak trend visualizations
-- Supply dispatch logic based on risk / urgency / inventory levels
-
----
-
 ## Tech Stack
 
 | Component   | Technology                          |
@@ -59,6 +52,13 @@ Licensed doctors can upload real-time data on recently detected diseases at thei
 - **Data Service**
   - Manages PostgreSQL database (disease reports, user roles)  
   - Ensures ACID compliance and indexing for fast lookups
+
+### 🔹 Extensibility
+The architecture is intentionally **extensible**.  
+New services (e.g., ML forecasting, AI dashboards, mobile APIs) can be added as **separate micro-services** that plug into the ecosystem without changing the existing codebase.  
+This keeps the system modular, easier to maintain, and deployable at scale.
+
+---
 
 ### Communication & Integration
 - Services communicate internally over REST/GraphQL.  
@@ -105,7 +105,12 @@ Licensed doctors can upload real-time data on recently detected diseases at thei
 
 ## Future Improvements
 
+To keep the system modular and scalable, future features will be developed as **separate projects/services**, rather than expanding this repository directly.  
+
+- Advanced **AI dashboards** with data visualization and predictive analytics
 - Add real‑time alerts (via SMS / email) for outbreaks beyond thresholds.
 - Mobile app for doctors in low-connectivity regions
 - Use machine learning models to forecast outbreaks and supply needs.
 - Strengthen security & privacy (compliance with health data standards).
+
+These extensions will live in separate repositories to ensure each service remains independent, easier to maintain, and can be scaled/deployed individually (also mindful of current hardware limits).
